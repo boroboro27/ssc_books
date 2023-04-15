@@ -1,0 +1,15 @@
+{% extends 'base.html' %} 
+
+{% block content %} 
+{{ super() }} 
+{% for cat, msg in get_flashed_messages(True) %}
+<div class="flash {{cat}}">{{msg}}</div>
+{% endfor %}
+<form action="{{url_for('add_book')}}" method="post" class="form-add-book">    
+    <p><label>Название книги: </label></p>
+    <p><textarea name="title-book" id="1" cols="41" rows="7" required ></textarea></p>
+    <p><label>Автор(ы) книги:</label> <input type="text" name="author-book", value="" required /> </p>    
+    <p><label>Год издания:</label> <input type="text" name="year-book", value="" required /> </p>
+    <p><input type="submit" value="Добавить в каталог" /></p>
+</form>
+{% endblock %}

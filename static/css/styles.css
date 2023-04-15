@@ -1,0 +1,164 @@
+html,
+body {
+    font-family: "Arial", sans-serif;
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+a {
+    color: #1e6899;
+    text-decoration: none;
+}
+
+a:hover {
+    color: #cc0000;
+    text-decoration: underline;
+}
+
+.clear {
+    clear: both;
+}
+
+ul.mainmenu {
+    list-style: none;
+    background: #3f4137;
+    height: 60px;
+    margin: 0;
+    padding: 0;
+    color: #fdc073;
+    font-size: 20px;
+    overflow: hidden;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.main-menu li {
+    display: flex;
+    justify-content: flex-start;
+    margin-right: 10px;
+    text-align: left;
+}
+
+ul.mainmenu li:last-child {
+    margin-right: 0;
+}
+
+ul.mainmenu li a {
+    color: #fdc073;
+    text-decoration: none;
+    font-weight: bold;
+    text-transform: uppercase;
+    padding: 10px;
+    transition: all 0.3s ease;
+    margin-left: auto;
+}
+
+ul.mainmenu li a:hover {
+    color: #fda83d;
+    background-color: #fff;
+    border-radius: 5px;
+}
+
+div.content {
+    margin: 10px;
+}
+
+.form-contact label {
+    display: inline-block;
+    min-width: 80px;
+    margin-bottom: 10px;
+}
+
+.form-contact p {
+    margin: 10px 0;
+}
+
+.form-contact input[type=submit],
+textarea {
+    font-size: 16px;
+    padding: 10px;
+    border-radius: 5px;
+    border: 1px solid #000000;
+    background-color: #f2f2f2;
+    margin-bottom: 10px;
+}
+
+.form-add-book label {
+    display: inline-block;
+    min-width: 80px;
+    margin-bottom: 10px;
+}
+
+.form-add-book p {
+    margin: 10px 0;
+}
+
+.form-add-book input[type=submit],
+textarea {
+    font-size: 16px;
+    padding: 10px;
+    border-radius: 5px;
+    border: 1px solid #000000;
+    background-color: #fcfbfb;
+    margin-bottom: 10px;
+}
+
+.flash {
+    padding: 10px;
+    border-radius: 5px;
+    margin-bottom: 10px;
+    width: 25%;
+    margin-left: 0px;
+    margin-right: 0%;
+    text-align: left;
+  }
+
+.flash.success {
+    border: 1px solid #21db56;
+    background: #baffce;
+    color: #168135;
+}
+
+.flash.error {
+    border: 1px solid #ff4343;
+    background: hsl(0, 100%, 85%);
+    color: #ee3232;
+}
+
+table {
+    border: 2px solid #ddd;
+    border-collapse: collapse;
+    width: 100%;
+    margin: 0;
+    font-size: 1em;
+    font-family: Arial, sans-serif;
+}
+
+thead {
+    background-color: #f2f2f2;
+    color: #333;
+}
+
+th,
+td {
+    text-align: left;
+    padding: 8px;
+    border: 1px solid #ddd;
+}
+
+th {
+    font-weight: bold;
+    text-align: right;
+}
+
+tr:nth-child(even) {
+    background-color: #f2f2f2;
+}
+
+tr:hover {
+    background-color: #ddd;
+}
