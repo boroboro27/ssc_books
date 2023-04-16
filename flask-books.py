@@ -22,7 +22,8 @@ def connect_db():
     Returns:
     conn: объект подключения к базе данных
     """
-    conn = sqlite3.connect('ssc-books.db')
+    db_path = os.path.join('/home/rsb27/python3/ssc-books/ssc-books_db_volume', 'ssc-books.db')
+    conn = sqlite3.connect(db_path)
     conn.row_factory = sqlite3.Row
     return conn
 
@@ -56,7 +57,7 @@ def index():
         else:
             db = get_db()
             dbase = FDataBase(db)
-            return render_template('index.html', title='Каталог книг',menu=dbase.getMenu())
+            return render_template('index.html', title='Каталог "Книжного перекрестка"', books=dbase.getAllBooks(),menu=dbase.getMenu())
     else:
         return redirect(url_for('login'))
 
@@ -81,20 +82,23 @@ def add_book():
                 #title, author, year, status, add_userid
                 res = dbase.addBook(request.form["title-book"].strip(), \
                                     request.form["author-book"].strip(), \
-                                    request.form["year-book"].strip(), add_userid[0])
+                                    request.form["year-book"].strip(), \
+                                    request.form["genre_id"].strip(), add_userid[0])
                 if not res[0]:
                     flash(f"Ошибка добавления книги в каталог: {res[1]}. Если ошибку не удается устранить, \n"
                           f"сообщите, пожалуйста, нам об ошибке через форму обратной связи.", category='error')
                 else:
                     flash((f"Книга успешно добавлена в каталог под номером #{res[1]}. "
-                           f"Запишите или вклейте этот номер в книгу на видное место."), category='success')
+                           f"Запишите или вклейте этот номер в книгу на видное место. "
+                           f'Теперь можете поставить книгу на полку в зоне обмена "Книжного перекрестка".'), category='success')
                     
                     is_fixed = dbase.fixEvent('add_book', res[1], add_userid[0]) 
                     if not is_fixed:
                         flash(f"Ошибка при регистрации события. \n"
                               f"Сообщите, пожалуйста, нам об ошибке через форму обратной связи.", category='error')
 
-        return render_template('add-book.html', title="Зарегистрировать новую книгу", menu=dbase.getMenu())               
+        return render_template('add-book.html', title="Зарегистрировать новую книгу", \
+                               menu=dbase.getMenu(), genres=dbase.getGenres())               
     else:
         return redirect(url_for('login'))
 

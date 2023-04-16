@@ -64,17 +64,16 @@ class FDataBase:
             print(f'Ошибка чтения пользователя из БД - {str(err)}')
         return ()    
     
-    def addBook(self, title: str, author: str, year: int, user_id: int) -> Tuple[bool, int | str]:        
+    def addBook(self, title: str, author: str, year: int, genre_id: int, user_id: int) -> Tuple[bool, int | str]:        
         """
         Добавление новой книги в БД
 
         :params title: название книги, author: автор, year: год издания, status_id: id статуса (1), user_id: id владельца книги
         :return: кортеж с информацией о добавленной книге (статус добавления(True/False), id книги)
         """
-        try:            
-            now_dt = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-            self.__cur.execute("INSERT INTO books(title, author, public_year, user_id) VALUES(?, ?, ?, ?)", 
-                            (title, author, year, user_id))
+        try: 
+            self.__cur.execute("INSERT INTO books(title, author, public_year, genre_id, user_id) VALUES(?, ?, ?, ?, ?)", 
+                            (title, author, year, genre_id, user_id))
             book_id = self.__cur.lastrowid
             self.__db.commit()            
         except sqlite3.Error as err:
@@ -102,26 +101,45 @@ class FDataBase:
             print(f'Ошибка чтения книги из БД - {str(err)}')
         return ()
     
-    def getAllBooks(self) -> list[Tuple[int, str, str, str, str]]:
+    def getAllBooks(self) -> list[Tuple[int, str, str, int, str, str, str]]:
         """
         Получает информацию о полном каталоге книг
         
         :return: кортеж с каталогом книг
-        (id книги, название книги, автор книги, жанр, год издания, 
+        (id книги, название книги, автор книги, год издания, жанр, , 
         дата добавления книги, статус книги)
         """
         # запрос
-        sql = (f"SELECT fb.id, fb.msg, u.email, fb.dt, s.status \n" 
-              f"FROM feedbacks as fb \n"
-              f"JOIN users as u ON fb.user_id = u.id \n"
-              f"JOIN fb_statuses as s ON fb.status_id = s.id \n"
-              f"ORDER BY fb.dt DESC")
+        sql = (f"SELECT b.id, b.title, b.author, b.public_year, g.genre, ev.dt, s.status \n" 
+              f"FROM books as b \n"
+              f"JOIN book_statuses as s ON b.status_id = s.id \n"
+              f"JOIN book_genres as g ON b.genre_id = g.id \n"
+              f"JOIN (SELECT e.object_id, e.dt \n" 
+	          f"FROM events as e \n"
+	          f"JOIN event_types as et ON e.type_id = et.id \n"
+	          f"WHERE et.event_type LIKE 'add_book') as ev ON b.id = ev.object_id \n"
+              f"ORDER BY ev.dt DESC")
         try:            
             self.__cur.execute(sql)
             res = self.__cur.fetchall()
             if res: return res
         except sqlite3.Error as err:
             print(f'Ошибка чтения списка меню из БД - {str(err)}')
+        return []
+    
+    def getGenres(self) -> list[Tuple[int, str]]:
+        """
+        Получает справочник жанров литературы
+        
+        :return: список кортежей с информацией жанрах литературы
+        (id жанра, название жанра)
+        """   
+        try:            
+            self.__cur.execute("SELECT id, genre FROM book_genres WHERE is_on = 1")
+            res = self.__cur.fetchall()
+            if res: return res
+        except sqlite3.Error as err:
+            print(f'Ошибка чтения списка жанров из БД - {str(err)}')
         return []
     
     def addFeedback(self, msg: str, user_id: int) -> Tuple[bool, int | str]:        

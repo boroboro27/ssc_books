@@ -28,6 +28,7 @@ ul.mainmenu {
     height: 60px;
     margin: 0;
     padding: 0;
+    width: 70%;
     color: #fdc073;
     font-size: 20px;
     overflow: hidden;
@@ -64,46 +65,48 @@ ul.mainmenu li a:hover {
 }
 
 div.content {
-    margin: 10px;
+    margin: 20px;
 }
 
 .form-contact label {
+    font-size: 16px;
     display: inline-block;
     min-width: 80px;
     margin-bottom: 10px;
 }
 
 .form-contact p {
-    margin: 10px 0;
+    margin: 5px 0;
 }
 
 .form-contact input[type=submit],
 textarea {
     font-size: 16px;
-    padding: 10px;
+    padding: 7px;
     border-radius: 5px;
     border: 1px solid #000000;
     background-color: #f2f2f2;
     margin-bottom: 10px;
 }
 
-.form-add-book label {
+.form-add-book label {  
+    font-size: 16px;  
     display: inline-block;
     min-width: 80px;
     margin-bottom: 10px;
 }
 
 .form-add-book p {
-    margin: 10px 0;
+    margin: 5px 0;
 }
 
 .form-add-book input[type=submit],
-textarea {
+input[type=text], textarea, select {
     font-size: 16px;
-    padding: 10px;
+    padding: 7px;
     border-radius: 5px;
     border: 1px solid #000000;
-    background-color: #fcfbfb;
+    background-color: #fcfafa;
     margin-bottom: 10px;
 }
 
@@ -132,7 +135,7 @@ textarea {
 table {
     border: 2px solid #ddd;
     border-collapse: collapse;
-    width: 100%;
+    width: 50%;
     margin: 0;
     font-size: 1em;
     font-family: Arial, sans-serif;
@@ -152,7 +155,7 @@ td {
 
 th {
     font-weight: bold;
-    text-align: right;
+    text-align: left;
 }
 
 tr:nth-child(even) {
