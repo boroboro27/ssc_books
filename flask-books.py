@@ -103,7 +103,7 @@ def add_book():
         return redirect(url_for('login'))
 
 @application.route('/book/<int:book_id>', methods=["GET"])
-def showBoook(book_id):
+def show_book(book_id):
     db = get_db()
     dbase = FDataBase(db)
     if 'userLogged' in session: 
@@ -120,6 +120,14 @@ def showBoook(book_id):
 @application.route("/profile/<path:user>")
 def profile(user):
     return f"{user}, рады вас видеть снова!"
+
+@application.route("/rules", methods=["POST", "GET"])
+def rules():
+    abort(404)
+
+@application.route("/lk", methods=["POST", "GET"])
+def lk():
+    abort(404)
 
 @application.route("/login", methods=["POST", "GET"])
 def login(): 
