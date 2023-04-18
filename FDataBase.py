@@ -54,10 +54,9 @@ class FDataBase:
 
         :param email: электронный адрес пользователя
         :return: кортеж с информацией о пользователе (id, принадлежность к администратору(0 или 1))
-        """
-        sql = "SELECT id, is_admin FROM users WHERE email = ?"
+        """        
         try:
-            self.__cur.execute(sql, (email.lower(),))
+            self.__cur.execute("SELECT id, is_admin FROM users WHERE email = ?", (email.lower(),))
             res = self.__cur.fetchone()
             if res: return res
         except sqlite3.Error as err:
@@ -80,6 +79,25 @@ class FDataBase:
             print(f'Ошибка добавления книги в БД - {str(err)}')
             return (False, str(err))
         return (True, book_id)
+    
+    def changeStatusBook(self, book_id: int, status: str) -> Tuple[bool, str ]:        
+        """
+        Cмена статуса книги в БД
+
+        :params title: book_id: id книги, status: статус, на который нужно сменить, 
+        :return: кортеж с информацией смене статуса книги (статус смены статуса(True/False), описание ошибки или пустая строка)
+        """
+        try: 
+            self.__cur.execute("UPDATE books SET status_id = (SELECT id \n"
+                               f"FROM book_statuses \n"
+				               f"WHERE status = ?) WHERE id = ?", 
+                               (status, book_id))
+            book_id = self.__cur.lastrowid
+            self.__db.commit()            
+        except sqlite3.Error as err:
+            print(f'Ошибка смены статуса книги в БД - {str(err)}')
+            return (False, str(err))
+        return (True, "")
     
     def getBook(self, book_id: int) -> Tuple[str, str, int, str]:
         """

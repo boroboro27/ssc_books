@@ -57,7 +57,9 @@ def index():
         else:
             db = get_db()
             dbase = FDataBase(db)
-            return render_template('index.html', title='Каталог "Книжного перекрестка"', books=dbase.getAllBooks(),menu=dbase.getMenu())
+            return render_template('index.html', title='Каталог "Книжного перекрестка"',
+                                   books=dbase.getAllBooks(),menu=dbase.getMenu(), \
+                                    user=session['userLogged'].split('@')[0])
     else:
         return redirect(url_for('login'))
 
@@ -67,7 +69,8 @@ def about():
     if 'userLogged' in session:
         db = get_db()
         dbase = FDataBase(db)
-        return render_template('about.html', title='О проекте "Книжный перекресток"', menu=dbase.getMenu())
+        return render_template('about.html', title='О проекте "Книжный перекресток"', menu=dbase.getMenu(), \
+                               user=session['userLogged'].split('@')[0])
     else:
         return redirect(url_for('login'))
 
@@ -98,22 +101,54 @@ def add_book():
                               f"Сообщите, пожалуйста, нам об ошибке через форму обратной связи.", category='error')
 
         return render_template('add-book.html', title="Зарегистрировать новую книгу", \
-                               menu=dbase.getMenu(), genres=dbase.getGenres())               
+                               menu=dbase.getMenu(), genres=dbase.getGenres(), \
+                                user=session['userLogged'].split('@')[0])               
     else:
         return redirect(url_for('login'))
-
-@application.route('/book/<int:book_id>', methods=["GET"])
-def show_book(book_id):
+    
+@application.route('/take_book/<int:book_id>', methods=["POST"])
+def take_book(book_id):
     db = get_db()
     dbase = FDataBase(db)
     if 'userLogged' in session: 
-        if dbase.getUser(session['userLogged'])[2] == 0:        
-            title, author, year, user_add = dbase.getBook(book_id)
-            if not title:
-                abort(404)
-            return render_template('book.html', title=title, author=author, year=year, user_add=user_add, menu=dbase.getMenu())
+        user_id = dbase.getUser(session['userLogged'])
+        res = dbase.changeStatusBook(book_id, status='taken')
+        if not res[0]:
+            flash(f"Ошибка при выдаче книги из каталога: {res[1]}. Если ошибку не удается устранить, \n"
+                          f"сообщите, пожалуйста, нам об ошибке через форму обратной связи.", category='error')
         else:
-            abort(403)
+            flash((f"Книга под номером #{book_id} успешно выдана из каталога . "                           
+                   f'Возьмите книгу с полки в зоне обмена "Книжного перекрестка".'), category='success')
+
+        is_fixed = dbase.fixEvent('take_book', book_id, user_id[0]) 
+        if not is_fixed:
+            flash(f"Ошибка при регистрации события. \n"
+                  f"Сообщите, пожалуйста, нам об ошибке через форму обратной связи.", category='error')
+            
+        return redirect(url_for('index'))
+    else:
+        return redirect(url_for('login'))
+    
+@application.route('/return_book/<int:book_id>', methods=["POST"])
+def return_book(book_id):
+    db = get_db()
+    dbase = FDataBase(db)
+    if 'userLogged' in session: 
+        user_id = dbase.getUser(session['userLogged'])
+        res = dbase.changeStatusBook(book_id, status='available')
+        if not res[0]:
+            flash(f"Ошибка при выдаче книги из каталога: {res[1]}. Если ошибку не удается устранить, \n"
+                          f"сообщите, пожалуйста, нам об ошибке через форму обратной связи.", category='error')
+        else:
+            flash((f"Книга под номером #{book_id} успешно возвращена в каталог . "                           
+                   f'Положите книгу на полку в зоне обмена "Книжного перекрестка".'), category='success')
+
+        is_fixed = dbase.fixEvent('return_book', book_id, user_id[0]) 
+        if not is_fixed:
+            flash(f"Ошибка при регистрации события. \n"
+                  f"Сообщите, пожалуйста, нам об ошибке через форму обратной связи.", category='error')
+            
+        return redirect(url_for('index'))
     else:
         return redirect(url_for('login'))
 
@@ -181,7 +216,8 @@ def contact():
                         flash(f"Ошибка при регистрации события. \n"
                               f"Сообщите, пожалуйста, нам об ошибке через форму обратной связи.", category='error')        
         
-        return render_template('contact.html', title="Обратная связь", menu=dbase.getMenu())
+        return render_template('contact.html', title="Обратная связь", menu=dbase.getMenu(), \
+                               user=session['userLogged'].split('@')[0])
     else:
         return redirect(url_for('login'))
     

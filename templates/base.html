@@ -9,7 +9,7 @@
     {% if title %}
     <title>{{ title }}</title>
     {% else %}
-    <title>Проект ОЦО Tele2</title>
+    <title>Книжный перекресток</title>
     {% endif %}
     {% endblock -%}
 </head>
@@ -25,13 +25,12 @@
     {% endblock mainmenu -%}
     <div class="clear"></div>
     <div class="content">
-        {% if title -%}
-        <h1>{{ title }}</h1>
+        {% if title and user -%}
+        <h1>{{ user }} - {{ title }}</h1>
         {% else -%}
-        <h1>Проект ОЦО Tele2</h1>
+        <h1>Книжный перекресток</h1>
         {% endif -%}
-        {% endblock -%}
+        {% endblock -%}"
     </div>
 </body>
-
 </html>
