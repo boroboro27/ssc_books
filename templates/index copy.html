@@ -13,3 +13,16 @@
 {% endfor %}
 </ul>
 {% endblock %}
+
+
+<td>
+    {% if book.status == 'available' %}
+    <form method="post" action="/take_book/{{ book.id }}">
+      <input type="submit" value="Взять книгу">
+    </form>
+    {% elif book.status == 'taken' %}
+    <form method="post" action="/return_book/{{ book.id }}">
+      <input type="submit" value="Вернуть книгу">
+    </form>
+    {% endif %}
+  </td>

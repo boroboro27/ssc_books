@@ -5,39 +5,31 @@
 {% for cat, msg in get_flashed_messages(True) %}
 <div class="flash {{cat}}">{{msg}}</div>
 {% endfor %}
-<p><label>Книги, которые сейчас у меня на руках: </label></p>
+<p><label>Книги, которые сейчас у меня <b>НА РУКАХ</b>: </label></p>
 <table>
   <thead>
     <tr>
-      <th>ID книги</th>
+      <th>Код книги</th>
       <th>Название</th>
       <th>Автор</th>
-      <th>Год издания</th>
       <th>Жанр</th>
-      <th>Дата добавления</th>
-      <th>Действия</th>
+      <th>Год издания</th>
+      <th>Читатель</th>
+      <th>Дата выдачи</th>
+      <th>Срок возврата</th>
     </tr>
   </thead>
   <tbody>
-    {% for book in books %}
+    {% for book in taken_books %}
     <tr>      
-      <td>{{ book.id }}</td>
+      <td>{{ book.code }}</td>
       <td>{{ book.title }}</td>
       <td>{{ book.author }}</td>
-      <td>{{ book.public_year }}</td>
       <td>{{ book.genre }}</td>
-      <td>{{ book.dt }}</td>
-      <td>
-        {% if book.status == 'available' %}
-        <form method="post" action="/take_book/{{ book.id }}">
-          <input type="submit" value="Взять книгу">
-        </form>
-        {% elif book.status == 'taken' %}
-        <form method="post" action="/return_book/{{ book.id }}">
-          <input type="submit" value="Вернуть книгу">
-        </form>
-        {% endif %}
-      </td>
+      <td>{{ book.year }}</td>
+      <td>{{ book.user }}</td>
+      <td>{{ book.dt_take }}</td>   
+      <td>{{ book.deadline }}</td>    
     </tr>    
     {% endfor %}
   </tbody>

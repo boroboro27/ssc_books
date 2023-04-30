@@ -67,8 +67,8 @@ def index():
             db = get_db()
             dbase = FDataBase(db)
             return render_template('index.html', title='Каталог "Книжного перекрестка"',
-                                   books=dbase.getAllBooks(),menu=dbase.getMenu(), \
-                                    user=session['userLogged'].split('@')[0])
+                                   avl_books=dbase.getAvailableBooks(), taken_books=dbase.getTakenBooks(), 
+                                   menu=dbase.getMenu(), user=session['userLogged'].split('@')[0])
     else:
         return redirect(url_for('login'))
 
@@ -83,7 +83,7 @@ def about():
     else:
         return redirect(url_for('login'))
 
-@application.route("/add-book", methods=["POST", "GET"])
+@application.route("/add_book", methods=["POST", "GET"])
 def add_book(): 
     db = get_db()
     dbase = FDataBase(db)
@@ -147,10 +147,6 @@ def return_book():
     else:
         return redirect(url_for('login'))
 
-@application.route("/profile/<path:user>")
-def profile(user):
-    return f"{user}, рады вас видеть снова!"
-
 @application.route("/rules", methods=["POST", "GET"])
 def rules():
     abort(404)
@@ -163,8 +159,9 @@ def lk():
         else:
             db = get_db()
             dbase = FDataBase(db)
+            user_id = dbase.getUser(session['userLogged'])
             return render_template('lk.html', title='Личный кабинет',
-                                   books=dbase.getAllBooks(),menu=dbase.getMenu(), \
+                                   taken_books=dbase.getTakenBooks(user_id[0]),menu=dbase.getMenu(), \
                                     user=session['userLogged'].split('@')[0])
     else:
         return redirect(url_for('login'))
@@ -178,23 +175,17 @@ def login():
         dbase = FDataBase(db)        
 
         if request.method == 'POST':
-            email = request.form['email']
+            email = request.form['email'].lower().strip()
             is_user = dbase.getUser(email)
-            if not is_user:
-                is_fixed = dbase.fixEvent('new_user', res[1], res[1])
-                if not is_fixed:
-                    flash(f"Ошибка при регистрации события (новый пользователь). \n"
-                          f"Сообщите, пожалуйста, нам об ошибке через форму обратной связи.", category='error')
+            if not is_user:                
+                res = dbase.addUser(email)     
+                if not res[0]:
+                    flash(f"Ошибка при добавлении пользователя: {res[1]}. \n"
+                            f"Если не удается устранить ошибку, сообщите, пожалуйста, о ней через форму обратной связи.", \
+                                category='error')   
                 else:
-                    res = dbase.addUser(email, is_fixed)                
-                                                  
-                    if not res[0]:
-                        flash(f"Ошибка при подключении пользователя: {res[1]}. \n"
-                              f"Если не удается устранить ошибку, сообщите, пожалуйста, о ней через форму обратной связи.", \
-                                    category='error')   
-                    else:
-                        session['userLogged'] = email 
-                        return redirect(url_for('index'))
+                    session['userLogged'] = email 
+                    return redirect(url_for('index'))
             else:
                 session['userLogged'] = email
                 return redirect(url_for('index'))

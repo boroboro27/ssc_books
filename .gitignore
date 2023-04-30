@@ -4,6 +4,6 @@ venv
 *.db
 *.sqbpro
 sql_damp.sql
-жанры.csv
-книги.csv
+жанры.*
+книги.*
 ssc-books_db_volume/

@@ -73,16 +73,16 @@ class FDataBase:
         return ()
     
     
-    def addUser(self, email: str, event_id: int) -> Tuple[bool, int | str]:
+    def addUser(self, email: str) -> Tuple[bool, int | str]:
         """
         Добавляет нового пользователя в БД
 
-        :param: email:  адрес эл. почты, event_id: id события о добавлении нового пользователя
+        :param: email:  адрес эл. почты
         :return: кортеж (true/false, id нового пользователя | описание ошибки)
         """
         try:            
-            self.__cur.execute("INSERT INTO users(email, last_event_id) VALUES(?, ?)", \
-                               (email.lower().strip(), event_id))
+            self.__cur.execute("INSERT INTO users(email) VALUES(?)", \
+                               (email,))
             user_id = self.__cur.lastrowid
             self.__db.commit()
         except sqlite3.Error as err:
@@ -94,11 +94,11 @@ class FDataBase:
         """
         Возвращает информацию о пользователе по его email
 
-        :param email: электронный адрес пользователя
+        :param: email: электронный адрес пользователя
         :return: кортеж (id пользователя, принадлежность к администратору(0 | 1))
         """        
         try:
-            self.__cur.execute("SELECT id, is_admin FROM users WHERE email = ? AND is_on = 1", (email.lower().strip(),))
+            self.__cur.execute("SELECT id, is_admin FROM users WHERE email = ? AND is_on = 1", (email,))
             res = self.__cur.fetchone()
             if res: return res
         except sqlite3.Error as err:
@@ -235,52 +235,36 @@ class FDataBase:
         return ()
     
     
-    def getAllBooks(self) -> list[Tuple[int, str, str, int, str, str, str]]:
+    def getAvailableBooks(self) -> list[Tuple[int, str, str, str, int, str, str]]:
         """
-        Возвращает информацию обо всех книгах в каталоге
+        Возвращает информацию обо всех доступных к выдаче книгах в каталоге
         
-        :return: кортеж (id книги, название книги, автор книги, год издания, 
-        жанр, дата добавления книги в каталог, тип последнего события, связанного с книгой)
+        :return: кортеж (код книги, название книги, автор книги, жанр, год издания, 
+        владелец книги, дата и время добавления книги в каталог)
         """
-        # запрос
-        sql = (f"SELECT b.id, b.title, b.author, b.public_year, g.genre, ev.dt, s.status \n" 
-              f"FROM books as b \n"
-              f"JOIN book_statuses as s ON b.status_id = s.id \n"
-              f"JOIN book_genres as g ON b.genre_id = g.id \n"
-              f"JOIN (SELECT e.object_id, e.dt \n" 
-	          f"FROM events as e \n"
-	          f"JOIN event_types as et ON e.type_id = et.id \n"
-	          f"WHERE et.event_type LIKE 'add_book') as ev ON b.id = ev.object_id \n"
-              f"ORDER BY ev.dt DESC")
+        
         try:            
-            self.__cur.execute(sql)
+            self.__cur.execute('SELECT * FROM vw_available_books')
             res = self.__cur.fetchall()
             if res: return res
         except sqlite3.Error as err:
             print(f'Ошибка чтения списка книг из БД - {str(err)}')
         return []
     
-    def getTakenBooks(self, user_id: Optional[int]) -> list[Tuple[int, str, str, int, str, str, str]]:
+    def getTakenBooks(self, user_id: Optional[int] = 0) -> list[Tuple[int, str, str, str, int, int, str, str, str]]:
         """
         Возвращает информацию о книгах, которые сейчас у пользователя(ей) на руках
         
         :param user_id: id пользователя (опционально)
-        :return: кортеж с каталогом книг
-        (id книги, название книги, автор книги, год издания, жанр, , 
-        дата добавления книги, статус книги)
+        :return: кортеж (код книги, название книги, автор книги, жанр, год издания, 
+        id пользователя(взявшего книгу), имя пользователя, дата и время выдачи книги, дата и время срока возврата
         """
-        # запрос
-        sql = (f"SELECT b.id, b.title, b.author, b.public_year, g.genre, ev.dt, s.status \n" 
-              f"FROM books as b \n"
-              f"JOIN book_statuses as s ON b.status_id = s.id \n"
-              f"JOIN book_genres as g ON b.genre_id = g.id \n"
-              f"JOIN (SELECT e.object_id, e.dt \n" 
-	          f"FROM events as e \n"
-	          f"JOIN event_types as et ON e.type_id = et.id \n"
-	          f"WHERE et.event_type LIKE 'add_book') as ev ON b.id = ev.object_id \n"
-              f"ORDER BY ev.dt DESC")
-        try:            
-            self.__cur.execute(sql)
+    
+        try: 
+            if user_id:           
+                self.__cur.execute('SELECT * FROM vw_taken_books WHERE user_id = ?', (user_id,))
+            else:
+                self.__cur.execute('SELECT * FROM vw_taken_books')
             res = self.__cur.fetchall()
             if res: return res
         except sqlite3.Error as err:
