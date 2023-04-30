@@ -248,15 +248,15 @@ class FDataBase:
             res = self.__cur.fetchall()
             if res: return res
         except sqlite3.Error as err:
-            print(f'Ошибка чтения списка книг из БД - {str(err)}')
+            print(f'Ошибка чтения списка доступных книг из БД - {str(err)}')
         return []
     
-    def getTakenBooks(self, user_id: Optional[int] = 0) -> list[Tuple[int, str, str, str, int, int, str, str, str]]:
+    def getTakenBooks(self, user_id: Optional[int] = 0) -> list[Tuple[int, int, str, str, str, int, int, str, str, str]]:
         """
         Возвращает информацию о книгах, которые сейчас у пользователя(ей) на руках
         
         :param user_id: id пользователя (опционально)
-        :return: кортеж (код книги, название книги, автор книги, жанр, год издания, 
+        :return: кортеж (код книги, id книги, название книги, автор книги, жанр, год издания, 
         id пользователя(взявшего книгу), имя пользователя, дата и время выдачи книги, дата и время срока возврата
         """
     
@@ -268,7 +268,27 @@ class FDataBase:
             res = self.__cur.fetchall()
             if res: return res
         except sqlite3.Error as err:
-            print(f'Ошибка чтения списка меню из БД - {str(err)}')
+            print(f'Ошибка чтения списка выданных книг из БД - {str(err)}')
+        return []
+    
+    def getBookLog(self, user_id: Optional[int] = 0) -> list[Tuple[int, int, str, str, int, int, str, str, str]]:
+        """
+        Возвращает информацию о всех действиях пользователя(ей) с книгами
+        
+        :param user_id: id пользователя (опционально)
+        :return: кортеж (код книги, id книги, название книги, автор книги, год издания, 
+        id пользователя, имя пользователя, тип операции, дата и время операции
+        """
+    
+        try: 
+            if user_id:           
+                self.__cur.execute('SELECT * FROM vw_book_log WHERE user_id = ?', (user_id,))
+            else:
+                self.__cur.execute('SELECT * FROM vw_book_log')
+            res = self.__cur.fetchall()
+            if res: return res
+        except sqlite3.Error as err:
+            print(f'Ошибка чтения списка операций(лога) из БД - {str(err)}')
         return []
     
     def getGenres(self) -> list[Tuple[int, str]]:

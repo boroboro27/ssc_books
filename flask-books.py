@@ -130,7 +130,7 @@ def take_book():
         return redirect(url_for('login'))
     
 @application.route('/return_book', methods=["POST"])
-def return_book():
+def return_book_post():
     db = get_db()
     dbase = FDataBase(db)
     if 'userLogged' in session: 
@@ -146,6 +146,24 @@ def return_book():
         return redirect(url_for('index'))
     else:
         return redirect(url_for('login'))
+    
+@application.route('/return_book/<int:book_code>', methods=["GET"])
+def return_book_get(book_code):
+    db = get_db()
+    dbase = FDataBase(db)
+    if 'userLogged' in session: 
+        user_id = dbase.getUser(session['userLogged'])
+        res = dbase.returnBook(book_code, user_id[0])
+        if not res[0]:
+            flash(f"Ошибка при возврате книги в каталог: {res[1]}. Если ошибку не удается устранить, \n"
+                          f"сообщите, пожалуйста, нам об ошибке через форму обратной связи.", category='error')
+        else:
+            flash((f"Книга под номером #{book_code} успешно возвращена в каталог (возвращено книг: {res[1]}). "                           
+                   f'Верните книгу на полку в зоне обмена "Книжного перекрестка".'), category='success')        
+            
+        return redirect(url_for('lk'))
+    else:
+        return redirect(url_for('login'))
 
 @application.route("/rules", methods=["POST", "GET"])
 def rules():
@@ -154,15 +172,17 @@ def rules():
 @application.route("/lk", methods=["POST", "GET"])
 def lk():
     if 'userLogged' in session:
+        db = get_db()
+        dbase = FDataBase(db)
+        user_id = dbase.getUser(session['userLogged'])
         if request.method == "POST":
-            pass
-        else:
-            db = get_db()
-            dbase = FDataBase(db)
-            user_id = dbase.getUser(session['userLogged'])
             return render_template('lk.html', title='Личный кабинет',
-                                   taken_books=dbase.getTakenBooks(user_id[0]),menu=dbase.getMenu(), \
-                                    user=session['userLogged'].split('@')[0])
+                                   taken_books=dbase.getTakenBooks(user_id[0]), book_log=dbase.getBookLog(user_id[0]), 
+                                   menu=dbase.getMenu(), user=session['userLogged'].split('@')[0])
+        else:            
+            return render_template('lk.html', title='Личный кабинет',
+                                   taken_books=dbase.getTakenBooks(user_id[0]), book_log=dbase.getBookLog(user_id[0]), 
+                                   menu=dbase.getMenu(), user=session['userLogged'].split('@')[0])
     else:
         return redirect(url_for('login'))
 

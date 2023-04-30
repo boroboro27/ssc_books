@@ -10,7 +10,7 @@
   <input type="text" id="" name="book_code">
   <input type="submit" value="Взять книгу с полки">
 </form>
-<form action="{{url_for('return_book')}}" method="post" class="form-return-book">
+<form action="{{url_for('return_book_post')}}" method="post" class="form-return-book">
   <label for="book_code">Пятизначный код книги:</label>
   <input type="text" id="" name="book_code">
   <input type="submit" value="Вернуть книгу на полку">
@@ -55,6 +55,7 @@
       <th>Читатель</th>
       <th>Дата выдачи</th>
       <th>Срок возврата</th>
+      <th>Хочу прочитать</th>
     </tr>
   </thead>
   <tbody>
@@ -67,7 +68,18 @@
       <td>{{ book.year }}</td>
       <td>{{ book.user }}</td>
       <td>{{ book.dt_take }}</td>   
-      <td>{{ book.deadline }}</td>    
+      <td>{{ book.deadline }}</td>
+      <td>
+        {% if book.user == user %}
+        <form method="post" action="{{url_for('lk')}}">
+          <input type="submit" value="уже читаю">
+        </form>
+        {% else %}
+        <form method="post" action="/follow_book/{{ book.id }}">
+          <input type="submit" value="подписаться">
+        </form>
+        {% endif %}
+      </td>    
     </tr>    
     {% endfor %}
   </tbody>

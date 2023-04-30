@@ -17,6 +17,7 @@
       <th>Читатель</th>
       <th>Дата выдачи</th>
       <th>Срок возврата</th>
+      <th>Действие</th>
     </tr>
   </thead>
   <tbody>
@@ -29,7 +30,40 @@
       <td>{{ book.year }}</td>
       <td>{{ book.user }}</td>
       <td>{{ book.dt_take }}</td>   
-      <td>{{ book.deadline }}</td>    
+      <td>{{ book.deadline }}</td>
+      <td>
+        {% if book.user == user %}
+        <form method="get" action="{{ url_for('return_book_get', book_code=book.code) }}" name='book_code'>
+          <input type="submit" value="вернуть книгу">
+        </form>        
+        {% endif %}
+      </td>       
+    </tr>    
+    {% endfor %}
+  </tbody>
+</table>
+
+<p><label>Моя <b>ИСТОРИЯ</b> операций с книгами: </label></p>
+<table>
+  <thead>
+    <tr>
+      <th>Код книги</th>
+      <th>Название</th>
+      <th>Автор</th>      
+      <th>Год издания</th>      
+      <th>Операция</th>
+      <th>Дата и время</th>      
+    </tr>
+  </thead>
+  <tbody>
+    {% for oper in book_log %}
+    <tr>      
+      <td>{{ oper.code }}</td>
+      <td>{{ oper.title }}</td>
+      <td>{{ oper.author }}</td>      
+      <td>{{ oper.year }}</td>
+      <td>{{ oper.oper }}</td>
+      <td>{{ oper.dt }}</td> 
     </tr>    
     {% endfor %}
   </tbody>
