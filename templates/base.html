@@ -1,13 +1,14 @@
 <!DOCTYPE html>
+
 <html>
 
-<head>    
-    <link type="image/png" sizes="16x16" rel="icon" href="{{ url_for('static', filename='img/icons8-книжная-полка-3d-fluency-16.png')}}">
-    <link type="image/png" sizes="32x32" rel="icon" href="{{ url_for('static', filename='img/icons8-книжная-полка-3d-fluency-32.png')}}">
+<head>
+    <link type='image/pn' sizes="32x32" rel="icon"
+        href="{{ url_for('static', filename='img/icons8-книжная-полка-3d-fluency-32.png')}}">
     <link type="text/css" href="{{ url_for('static', filename='css/styles.css')}}" rel="stylesheet" />
     {% block title -%}
     {% if title %}
-    <title>{{ title }}</title>
+    <title>v.1.0.0 - {{ title }}</title>
     {% else %}
     <title>Книжный перекресток</title>
     {% endif %}
@@ -26,11 +27,12 @@
     <div class="clear"></div>
     <div class="content">
         {% if title and user -%}
-        <h1>{{ user }} - {{ title }}</h1>
+        <h1>{{ user }} - {{ title }} (v.1.0.0)</h1>
         {% else -%}
         <h1>Книжный перекресток</h1>
         {% endif -%}
-        {% endblock -%}"
+        {% endblock -%}
     </div>
 </body>
+
 </html>

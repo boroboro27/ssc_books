@@ -5,16 +5,7 @@
 {% for cat, msg in get_flashed_messages(True) %}
 <div class="flash {{cat}}">{{msg}}</div>
 {% endfor %}
-<form action="{{url_for('take_book')}}" method="post" class="form-take-book">
-  <label for="book_code">Пятизначный код книги:</label>
-  <input type="text" id="" name="book_code">
-  <input type="submit" value="Взять книгу с полки">
-</form>
-<form action="{{url_for('return_book')}}" method="post" class="form-return-book">
-  <label for="book_code">Пятизначный код книги:</label>
-  <input type="text" id="" name="book_code">
-  <input type="submit" value="Вернуть книгу на полку">
-</form>
+<p><label>Книги, которые сейчас у меня на руках: </label></p>
 <table>
   <thead>
     <tr>

@@ -24,7 +24,11 @@ def connect_db():
     """
     db_path = os.path.join('/home/rsb27/python3/ssc-books/ssc-books_db_volume', 'ssc-books.db')
     conn = sqlite3.connect(db_path)
-    conn.row_factory = sqlite3.Row
+    # Настраиваем, чтобы SQLite3 возвращал объект sqlite3.Row вместо обычного списка или кортежа, 
+    # потому что он предоставляет удобный способ доступа к данным в строке результата запроса. 
+    # Объект sqlite3.Row является объектом-контейнером, 
+    # который позволяет обращаться к элементам строки результата запроса с помощью их имен или индексов.
+    conn.row_factory = sqlite3.Row    
     return conn
 
 def get_db():
@@ -46,6 +50,11 @@ def close_db(error):
         error: ошибка
     """    
     if hasattr(g, 'link_db'):
+        #создается дамп БД
+        with open("sql_damp.sql", "w") as f:
+                for sql in g.link_db.iterdump():
+                    f.write(sql)
+        # закрывается соединение с БД
         g.link_db.close()
 
 
@@ -81,72 +90,58 @@ def add_book():
 
     if 'userLogged' in session:
         if request.method == "POST":            
-                add_userid = dbase.getUser(session['userLogged'])
+                user_id = dbase.getUser(session['userLogged'])
                 #title, author, year, status, add_userid
                 res = dbase.addBook(request.form["title-book"].strip(), \
                                     request.form["author-book"].strip(), \
+                                    request.form["genre_id"].strip(), \
                                     request.form["year-book"].strip(), \
-                                    request.form["genre_id"].strip(), add_userid[0])
+                                    user_id[0])
                 if not res[0]:
                     flash(f"Ошибка добавления книги в каталог: {res[1]}. Если ошибку не удается устранить, \n"
                           f"сообщите, пожалуйста, нам об ошибке через форму обратной связи.", category='error')
-                else:
+                else:                    
                     flash((f"Книга успешно добавлена в каталог под номером #{res[1]}. "
                            f"Запишите или вклейте этот номер в книгу на видное место. "
                            f'Теперь можете поставить книгу на полку в зоне обмена "Книжного перекрестка".'), category='success')
-                    
-                    is_fixed = dbase.fixEvent('add_book', res[1], add_userid[0]) 
-                    if not is_fixed:
-                        flash(f"Ошибка при регистрации события. \n"
-                              f"Сообщите, пожалуйста, нам об ошибке через форму обратной связи.", category='error')
-
+                       
         return render_template('add-book.html', title="Зарегистрировать новую книгу", \
                                menu=dbase.getMenu(), genres=dbase.getGenres(), \
                                 user=session['userLogged'].split('@')[0])               
     else:
         return redirect(url_for('login'))
     
-@application.route('/take_book/<int:book_id>', methods=["POST"])
-def take_book(book_id):
+@application.route('/take_book', methods=["POST"])
+def take_book():
     db = get_db()
     dbase = FDataBase(db)
     if 'userLogged' in session: 
         user_id = dbase.getUser(session['userLogged'])
-        res = dbase.changeStatusBook(book_id, status='taken')
+        res = dbase.takeBook(request.form['book_code'].strip(), user_id[0])
         if not res[0]:
             flash(f"Ошибка при выдаче книги из каталога: {res[1]}. Если ошибку не удается устранить, \n"
                           f"сообщите, пожалуйста, нам об ошибке через форму обратной связи.", category='error')
         else:
-            flash((f"Книга под номером #{book_id} успешно выдана из каталога . "                           
-                   f'Возьмите книгу с полки в зоне обмена "Книжного перекрестка".'), category='success')
-
-        is_fixed = dbase.fixEvent('take_book', book_id, user_id[0]) 
-        if not is_fixed:
-            flash(f"Ошибка при регистрации события. \n"
-                  f"Сообщите, пожалуйста, нам об ошибке через форму обратной связи.", category='error')
+            flash((f"Книга под номером #{request.form['book_code'].strip()} успешно выдана из каталога (открыт формуляр #{res[1]}). "                           
+                   f'Возьмите книгу с полки в зоне обмена "Книжного перекрестка".'), category='success')        
             
         return redirect(url_for('index'))
     else:
         return redirect(url_for('login'))
     
-@application.route('/return_book/<int:book_id>', methods=["POST"])
-def return_book(book_id):
+@application.route('/return_book', methods=["POST"])
+def return_book():
     db = get_db()
     dbase = FDataBase(db)
     if 'userLogged' in session: 
         user_id = dbase.getUser(session['userLogged'])
-        res = dbase.changeStatusBook(book_id, status='available')
+        res = dbase.returnBook(request.form['book_code'].strip(), user_id[0])
         if not res[0]:
-            flash(f"Ошибка при выдаче книги из каталога: {res[1]}. Если ошибку не удается устранить, \n"
+            flash(f"Ошибка при возврате книги в каталог: {res[1]}. Если ошибку не удается устранить, \n"
                           f"сообщите, пожалуйста, нам об ошибке через форму обратной связи.", category='error')
         else:
-            flash((f"Книга под номером #{book_id} успешно возвращена в каталог . "                           
-                   f'Положите книгу на полку в зоне обмена "Книжного перекрестка".'), category='success')
-
-        is_fixed = dbase.fixEvent('return_book', book_id, user_id[0]) 
-        if not is_fixed:
-            flash(f"Ошибка при регистрации события. \n"
-                  f"Сообщите, пожалуйста, нам об ошибке через форму обратной связи.", category='error')
+            flash((f"Книга под номером #{request.form['book_code'].strip()} успешно возвращена в каталог (возвращено книг: {res[1]}). "                           
+                   f'Верните книгу на полку в зоне обмена "Книжного перекрестка".'), category='success')        
             
         return redirect(url_for('index'))
     else:
@@ -162,7 +157,17 @@ def rules():
 
 @application.route("/lk", methods=["POST", "GET"])
 def lk():
-    abort(404)
+    if 'userLogged' in session:
+        if request.method == "POST":
+            pass
+        else:
+            db = get_db()
+            dbase = FDataBase(db)
+            return render_template('lk.html', title='Личный кабинет',
+                                   books=dbase.getAllBooks(),menu=dbase.getMenu(), \
+                                    user=session['userLogged'].split('@')[0])
+    else:
+        return redirect(url_for('login'))
 
 @application.route("/login", methods=["POST", "GET"])
 def login(): 
@@ -173,22 +178,23 @@ def login():
         dbase = FDataBase(db)        
 
         if request.method == 'POST':
-            email = request.form['email'].lower().strip()
+            email = request.form['email']
             is_user = dbase.getUser(email)
             if not is_user:
-                res = dbase.addUser(email)
                 is_fixed = dbase.fixEvent('new_user', res[1], res[1])
-                                                  
-                if not res[0]:
-                    flash(f"Ошибка при подключении пользователя: {res[1]}. \n"
-                          f"Если не удается устранить ошибку, сообщите, пожалуйста, о ней через форму обратной связи.", \
-                            category='error')
-                elif not is_fixed:
-                    flash(f"Ошибка при регистрации события. \n"
-                          f"Сообщите, пожалуйста, нам об ошибке через форму обратной связи.", category='error') 
+                if not is_fixed:
+                    flash(f"Ошибка при регистрации события (новый пользователь). \n"
+                          f"Сообщите, пожалуйста, нам об ошибке через форму обратной связи.", category='error')
                 else:
-                    session['userLogged'] = email 
-                    return redirect(url_for('index'))
+                    res = dbase.addUser(email, is_fixed)                
+                                                  
+                    if not res[0]:
+                        flash(f"Ошибка при подключении пользователя: {res[1]}. \n"
+                              f"Если не удается устранить ошибку, сообщите, пожалуйста, о ней через форму обратной связи.", \
+                                    category='error')   
+                    else:
+                        session['userLogged'] = email 
+                        return redirect(url_for('index'))
             else:
                 session['userLogged'] = email
                 return redirect(url_for('index'))
@@ -209,12 +215,7 @@ def contact():
                 flash(f"Ошибка отправки обращения: {res[1]}.", category='error')
             else:
                 flash((f"Обращение #{res[1]} успешно отправлено. "
-                       f"Ожидайте ответа на адрес вашей эл. почты {session['userLogged']}"), category='success')
-                
-                is_fixed = dbase.fixEvent('add_feedback', res[1], user_id[0])
-                if not is_fixed:
-                        flash(f"Ошибка при регистрации события. \n"
-                              f"Сообщите, пожалуйста, нам об ошибке через форму обратной связи.", category='error')        
+                       f"Ожидайте ответа на адрес вашей эл. почты {session['userLogged']}"), category='success')  
         
         return render_template('contact.html', title="Обратная связь", menu=dbase.getMenu(), \
                                user=session['userLogged'].split('@')[0])
@@ -239,6 +240,5 @@ def forbidden(error):
     return render_template('page403.html', title='Доступ к информации ограничен, т.к. вы не являетесь администратором ресурса.', \
                            menu=dbase.getMenu()), 403
 
-if __name__ == "__main__":
-   application.run(host='0.0.0.0', debug=DEBAG)
+if __name__ == "__main__":   application.run(host='0.0.0.0', debug=DEBAG)
     

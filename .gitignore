@@ -3,3 +3,7 @@ __pycache__
 venv
 *.db
 *.sqbpro
+sql_damp.sql
+жанры.csv
+книги.csv
+ssc-books_db_volume/
