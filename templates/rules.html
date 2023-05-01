@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+ 
+{% block content %} 
+{{ super() }} 
+{% for cat, msg in get_flashed_messages(True) %}
+<div class="flash {{cat}}">{{msg}}</div>
+{% endfor %}
+<p><label>.:<b>: СОБЛЮДАЙТЕ, ПОЖАЛУЙСТА, ЭТИ ПРАВИЛА! :</b>:.</label></p>
+<table class="rules">
+<thead>
+  <tr>
+    <th>№</th>
+    <th>Правило</th>    
+  </tr>
+</thead>
+  <tbody>
+    {% for rule in rules %}
+    <tr>      
+      <td>{{ rule.id }}</td>
+      <td>{{ rule.description }}</td>      
+    </tr>    
+    {% endfor %}
+  </tbody>
+</table>
+
+{% endblock %}

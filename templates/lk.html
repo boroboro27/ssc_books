@@ -5,7 +5,7 @@
 {% for cat, msg in get_flashed_messages(True) %}
 <div class="flash {{cat}}">{{msg}}</div>
 {% endfor %}
-<p><label>Книги, которые сейчас у меня <b>НА РУКАХ</b>: </label></p>
+<p><label>.:<b>: МОЯ ТЕКУЩАЯ КНИГА :</b>:.</label></p>
 <table>
   <thead>
     <tr>
@@ -32,7 +32,7 @@
       <td>{{ book.dt_take }}</td>   
       <td>{{ book.deadline }}</td>
       <td>
-        {% if book.user == user %}
+        {% if book.user_id == user_id %}
         <form method="get" action="{{ url_for('return_book_get', book_code=book.code) }}" name='book_code'>
           <input type="submit" value="вернуть книгу">
         </form>        
@@ -42,8 +42,44 @@
     {% endfor %}
   </tbody>
 </table>
+<br>
 
-<p><label>Моя <b>ИСТОРИЯ</b> операций с книгами: </label></p>
+<p><label>.:<b>: МОИ ПОДПИСКИ :</b>:.</label></p>
+<table>
+  <thead>
+    <tr>
+      <th>Код книги</th>
+      <th>Название</th>
+      <th>Автор</th>      
+      <th>Год издания</th>      
+      <th>Старт подписки</th>
+      <th>Срок подписки</th>
+      <th>Действие</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for sub in subscriptions %}
+    <tr>      
+      <td>{{ sub.code }}</td>
+      <td>{{ sub.title }}</td>
+      <td>{{ sub.author }}</td>      
+      <td>{{ sub.year }}</td>      
+      <td>{{ sub.dt_start }}</td>   
+      <td>{{ sub.dt_stop }}</td>
+      <td>
+        {% if sub.user == user %}
+        <form method="get" action="{{ url_for('unsubscribe_book', book_id=sub.id) }}" name='book_id'>
+          <input type="submit" value="отписаться">
+        </form>        
+        {% endif %}
+      </td>       
+    </tr>    
+    {% endfor %}
+  </tbody>
+</table>
+<br>
+
+<p><label>.:<b>: МОЯ ИСТОРИЯ :</b>:.</label></p>
 <table>
   <thead>
     <tr>

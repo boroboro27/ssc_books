@@ -5,17 +5,16 @@
 {% for cat, msg in get_flashed_messages(True) %}
 <div class="flash {{cat}}">{{msg}}</div>
 {% endfor %}
-<form action="{{url_for('take_book')}}" method="post" class="form-take-book">
-  <label for="book_code">Пятизначный код книги:</label>
+
+<p><label>.:<b>: ВЗЯТЬ КНИГУ :</b>:.</label></p>
+<p><label>Введите 5-значный код, указанный на(в) книге:</label></p>
+<form class="form-take-book">
+  <label for="book_code"></label>
   <input type="text" id="" name="book_code">
-  <input type="submit" value="Взять книгу с полки">
+  <input formaction="{{url_for('take_book')}}" formmethod="post" type="submit" value="Взять с полки" />  
 </form>
-<form action="{{url_for('return_book_post')}}" method="post" class="form-return-book">
-  <label for="book_code">Пятизначный код книги:</label>
-  <input type="text" id="" name="book_code">
-  <input type="submit" value="Вернуть книгу на полку">
-</form>
-<p><label>Книги, которые сейчас <b>ДОСТУПНЫ</b> на полке:</label></p>
+<br>
+<p><label>.:<b>: СВОБОДНЫЕ КНИГИ :</b>:.</label></p>
 <table>
   <thead>
     <tr>
@@ -42,8 +41,8 @@
     {% endfor %}
   </tbody>
 </table>
-
-<p><label>Книги, которые сейчас <b>ВЫДАНЫ</b>: </label></p>
+<br>
+<p><label>.:<b>: ВЫДАННЫЕ КНИГИ :</b>:.</label></p>
 <table>
   <thead>
     <tr>
@@ -71,11 +70,11 @@
       <td>{{ book.deadline }}</td>
       <td>
         {% if book.user == user %}
-        <form method="post" action="{{url_for('lk')}}">
+        <form method="post" action="{{ url_for('lk') }}">
           <input type="submit" value="уже читаю">
         </form>
         {% else %}
-        <form method="post" action="/follow_book/{{ book.id }}">
+        <form method="get" action="{{ url_for('subscribe_book', book_id=book.id) }}">
           <input type="submit" value="подписаться">
         </form>
         {% endif %}

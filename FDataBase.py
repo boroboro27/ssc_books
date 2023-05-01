@@ -1,18 +1,50 @@
 import sqlite3
-import time
-import math
-from datetime import datetime
-from typing import Tuple, Optional
+
+from typing import Optional
 
 
 class FDataBase:
     def __init__(self, db: sqlite3.Connection) -> None:
         self.__db = db
-        self.__cur = db.cursor()
+        self.__cur = db.cursor()    
+        
+    def __getBookCode(self, book_id: int) -> tuple[int] | None:
+        """
+        Возвращает код книги по ее идентификатору
 
-    def getMenu(self) -> list[Tuple]:
+        :param book_id: идентификатор книги
+        :return: кортеж с информацией о книге (код книги) или None
+        """       
+        try:
+            # Передаем book_id в метод execute() в виде кортежа
+            self.__cur.execute("SELECT code FROM books WHERE id = ? and is_on = 1", (book_id,))
+            res = self.__cur.fetchone()
+            if res: return res
+        except sqlite3.Error as err:
+            print(f'Ошибка чтения книги из БД - {str(err)}')
+        return ()
+    
+    def __getBookId(self, book_code: int) -> tuple[int]:
+        """
+        Возвращает идентификатор книги по коду
+
+        :param book_code: код книги
+        :return: кортеж с информацией о книге (идентификатор книги) или None
+        """       
+        try:
+            # Передаем book_code в метод execute() в виде кортежа
+            self.__cur.execute("SELECT id FROM books WHERE code = ? and is_on = 1", (book_code,))
+            res = self.__cur.fetchone()
+            if res: return res
+        except sqlite3.Error as err:
+            print(f'Ошибка чтения книги из БД - {str(err)}')
+        return ()
+    
+    def getMenu(self) -> list[tuple[str]]:
         """
         Получение списка пунктов меню из БД
+
+        :return: список кортежей с пунктами главноего меню или пустой список
         """        
         try:
             self.__cur.execute('SELECT * FROM mainmenu')
@@ -20,77 +52,26 @@ class FDataBase:
             if res: return res
         except sqlite3.Error as err:
             print(f'Ошибка чтения списка меню из БД - {str(err)}')
-        return []
+        return []       
     
-    def __getEventType(self, event_type: str) -> Tuple[int]:
-        """
-        Возвращает id типа события по его названию
-        (внутренний метод)
-
-        :param: event_type:  название типа события
-        :return: кортеж (id типа события)
-        """         
-        try:
-            self.__cur.execute('SELECT id FROM event_types WHERE event_type = ?', (event_type,))
-            res = self.__cur.fetchone()
-            if res: return res
-        except sqlite3.Error as err:
-            print(f'Ошибка чтения списка типов событий из БД - {str(err)}')
-        return []
-    
-    def __getBookCode(self, book_id: int) -> Tuple[int]:
-        """
-        Возвращает код книги по ее идентификатору
-
-        :param book_id: идентификатор книги
-        :return: кортеж с информацией о книге (код книги)
-        """       
-        try:
-            # Передаем book_id в метод execute() в виде кортежа
-            self.__cur.execute("SELECT code FROM books WHERE id = ? and is_on = 1", (book_id,))
-            res = self.__cur.fetchone()
-            rows = self.__cur.rowcount
-            if res: return res
-        except sqlite3.Error as err:
-            print(f'Ошибка чтения книги из БД - {str(err)}')
-        return ()
-    
-    def __getBookId(self, book_code: int) -> Tuple[int]:
-        """
-        Возвращает идентификатор книги по коду
-
-        :param book_code: код книги
-        :return: кортеж с информацией о книге (идентификатор книги)
-        """       
-        try:
-            # Передаем book_code в метод execute() в виде кортежа
-            self.__cur.execute("SELECT id FROM books WHERE code = ? and is_on = 1", (book_code,))
-            res = self.__cur.fetchone()
-            rows = self.__cur.rowcount
-            if res: return res
-        except sqlite3.Error as err:
-            print(f'Ошибка чтения книги из БД - {str(err)}')
-        return ()
-    
-    
-    def addUser(self, email: str) -> Tuple[bool, int | str]:
+    def addUser(self, email: str) -> tuple[bool, int | str]:
         """
         Добавляет нового пользователя в БД
 
         :param: email:  адрес эл. почты
-        :return: кортеж (true/false, id нового пользователя | описание ошибки)
+        :return: кортеж (true/false, кол-во добавленных строк или описание ошибки)
         """
         try:            
             self.__cur.execute("INSERT INTO users(email) VALUES(?)", \
                                (email,))
-            user_id = self.__cur.lastrowid
+            rows = self.__cur.rowcount
             self.__db.commit()
         except sqlite3.Error as err:
-            print(f'Ошибка добавления пользователя в БД - {str(err)}')
+            print(f'Ошибка при добавлении пользователя в БД - {str(err)}')
             return (False, str(err))
-        return (True, user_id)
+        return (True, rows)
     
-    def getUser(self, email: str) -> Tuple[int, int]:
+    def getUser(self, email: str) -> tuple[int, int]:
         """
         Возвращает информацию о пользователе по его email
 
@@ -100,12 +81,12 @@ class FDataBase:
         try:
             self.__cur.execute("SELECT id, is_admin FROM users WHERE email = ? AND is_on = 1", (email,))
             res = self.__cur.fetchone()
-            if res: return res
+            if res: return res            
         except sqlite3.Error as err:
-            print(f'Ошибка чтения пользователя из БД - {str(err)}')
+            print(f'Ошибка получения id пользователя из БД - {str(err)}')
         return ()    
     
-    def addBook(self, title: str, author: str, genre_id: int, year: int, user_id: int) -> Tuple[bool, int | str]:        
+    def addBook(self, title: str, author: str, genre_id: int, year: int, user_id: int) -> tuple[bool, int | str]:        
         """
         Добавляет новую книгу в каталог, создаёт пустой новый формуляр, заносит в лог инфо о создании книги
 
@@ -117,14 +98,13 @@ class FDataBase:
                             (title, author, genre_id, year, user_id))
             book_id = self.__cur.lastrowid
             self.__db.commit()
-            book_code = self.__getBookCode(book_id)                 
-
+            book_code = self.__getBookCode(book_id)
+            if book_code: return (True, book_code['code'])  
         except sqlite3.Error as err:
-            print(f'Ошибка добавления книги в БД - {str(err)}')
-            return (False, str(err))
-        return (True, book_code['code'])
+            print(f'Ошибка добавления книги в БД - {str(err)}')            
+        return (False, str(err))
     
-    def takeBook(self, book_code: int, user_id: int) -> Tuple[bool, int | str]:        
+    def takeBook(self, book_code: int, user_id: int) -> tuple[bool, int | str]:        
         """
         Создаёт пустой новый формуляр с датой выдачи книги = 'сегодня', заносит в лог инфо о выдаче книги
 
@@ -132,38 +112,38 @@ class FDataBase:
         :return: кортеж с информацией о выданной книге (статус добавления(True/False), id формуляра или описание ошибки)
         """
         try: 
-            book_id = self.__getBookId(book_code)['id']
+            book_id = self.__getBookId(book_code)
             if not book_id:
-                return (False, f'В каталоге отсутствует книга с номером {book_code}. Проверьте и введите код еще раз.')
-            self.__cur.execute("""
-            -- Вставляем новую запись в таблицу forms с полями user_id, book_id и dt_take
-            INSERT INTO forms (user_id, book_id, dt_take)
-            -- Выбираем значения для вставки
-            SELECT :user_id, :book_id, datetime('now', 'localtime')
-            -- Проверяем, что в таблице forms нет записей с такими же значениями полей book_id и user_id,
-            -- удовлетворяющими условиям dt_take <= datetime('now') и dt_return > datetime('now')
-            WHERE NOT EXISTS (
-                SELECT 1 FROM forms 
-                WHERE (book_id = :book_id AND dt_take <= datetime('now', 'localtime') AND dt_return > datetime('now', 'localtime'))
-                OR (user_id = :user_id AND dt_take <= datetime('now', 'localtime') AND dt_return > datetime('now', 'localtime'))
-            ) AND EXISTS (
-                SELECT 1 FROM books 
-                WHERE id = :book_id AND is_on = 1
-            );
-            """, 
-            {'book_id': book_id, 'user_id': user_id})
-            form_id = self.__cur.lastrowid
-            if form_id == 0:
-                return (False, f"либо книга #{book_code} уже выдана (найдите книгу в каталоге и проверьте её статус), "
-                               f"либо у вас уже есть на руках другая книга из каталога (проверьте выданные книги в личном кабинете).")
-            self.__db.commit()                             
-
+                return (False, f'В каталоге отсутствует книга с номером {book_code}. Проверьте и введите код еще раз.')            
+            else: 
+                self.__cur.execute("""
+                -- Вставляем новую запись в таблицу forms с полями user_id, book_id и dt_take
+                INSERT INTO forms (user_id, book_id, dt_take)
+                -- Выбираем значения для вставки
+                SELECT :user_id, :book_id, datetime('now', 'localtime')
+                -- Проверяем, что в таблице forms нет записей с такими же значениями полей book_id и user_id,
+                -- удовлетворяющими условиям dt_take <= datetime('now') и dt_return > datetime('now')
+                WHERE NOT EXISTS (
+                    SELECT 1 FROM forms 
+                    WHERE (book_id = :book_id AND dt_take <= datetime('now', 'localtime') AND dt_return > datetime('now', 'localtime'))
+                    OR (user_id = :user_id AND dt_take <= datetime('now', 'localtime') AND dt_return > datetime('now', 'localtime'))
+                ) AND EXISTS (
+                    SELECT 1 FROM books 
+                    WHERE id = :book_id AND is_on = 1
+                );
+                """, 
+                {'book_id': book_id['id'], 'user_id': user_id})
+                rows = self.__cur.rowcount
+                if rows <= 0:
+                    return (False, f"либо книга #{book_code} уже на руках у кото-то (найдите книгу в каталоге и проверьте её статус), "
+                                f"либо у вас уже есть другая книга, и вы пока её не вернули (проверьте выданные книги в личном кабинете).")
+                self.__db.commit() 
         except sqlite3.Error as err:
             print(f'Ошибка выдачи книги в БД - {str(err)}')
             return (False, str(err))
-        return (True, form_id)
+        return (True, rows)
     
-    def returnBook(self, book_code: int, user_id: int) -> Tuple[bool, int | str]:        
+    def returnBook(self, book_code: int, user_id: int) -> tuple[bool, int | str]:        
         """
         Закрывает открытый формуляр, проставляя дату возврата книги = 'сегодня', заносит в лог инфо о возврате книги
 
@@ -171,49 +151,143 @@ class FDataBase:
         :return: кортеж с информацией о выданной книге (статус добавления(True/False), колличество возвращенных книг или описание ошибки)
         """
         try: 
-            book_id = self.__getBookId(book_code)['id']
+            book_id = self.__getBookId(book_code)
             if not book_id:
                 return (False, f'В каталоге отсутствует книга с номером {book_code}. Проверьте и введите код еще раз.')
-            self.__cur.execute("""
-            UPDATE forms 
-            SET dt_return = datetime('now', 'localtime')
-            WHERE user_id = :user_id 
-            AND book_id = :book_id
-            AND dt_return > datetime('now', 'localtime')
-            AND dt_take <= datetime('now', 'localtime')
-            AND dt_new > datetime('now', 'localtime')
-            AND dt_delete > datetime('now', 'localtime')
-            """, 
-            {'book_id': book_id, 'user_id': user_id})
+            else:
+                self.__cur.execute("""
+                UPDATE forms 
+                SET dt_return = datetime('now', 'localtime')
+                WHERE user_id = :user_id 
+                AND book_id = :book_id
+                AND dt_return > datetime('now', 'localtime')
+                AND dt_take <= datetime('now', 'localtime')
+                AND dt_new > datetime('now', 'localtime')
+                AND dt_delete > datetime('now', 'localtime')
+                """, 
+                {'book_id': book_id['id'], 'user_id': user_id})
 
-            rows = self.__cur.rowcount
-            if rows == 0:
-                return (False, f"либо книга #{book_code} на данный момент не выдана (найдите книгу в каталоге и проверьте её статус), "
-                               f"либо вам ранее не выдавалась (проверьте выданные книги в личном кабинете).")
-            self.__db.commit()                             
+                rows = self.__cur.rowcount
+                if rows <= 0:
+                    return (False, f"либо книга #{book_code} не выдавалась (найдите книгу в каталоге и проверьте её статус), "
+                                   f"либо выдавалась, но не ваше имя (проверьте выданные книги в личном кабинете).")
+                self.__db.commit()                             
 
         except sqlite3.Error as err:
             print(f'Ошибка выдачи книги в БД - {str(err)}')
             return (False, str(err))
-        return (True, rows)
+        return (True, rows)    
     
-    def setStatusBook(self, book_id: int, event_id: int) -> Tuple[bool, str]:        
+    def subscribeBook(self, book_id: int, user_id: int) -> tuple[bool, int | str]:        
         """
-        Устанавливает статус книги в БД
+        Оформляет подписку на книгу, заносит в лог инфо о подписке на книгу
 
-        :params title: book_id: id книги, event_id: id события, которое сменило статус книги, 
-        :return: кортеж (статус смены статуса(True/False), описание ошибки | пустая строка)
+        :params title: user_id: id пользователя, book_id: id книги
+        :return: кортеж с информацией о подписке на книгу (статус добавления(True/False), )
         """
-        try: 
-            self.__cur.execute("UPDATE books SET last_event_id = ? WHERE id = ?", 
-                               (event_id, book_id))            
-            self.__db.commit()            
+        try:            
+            
+            self.__cur.execute("""
+            -- Вставляем новую запись в таблицу subscriptions с полями user_id, book_id
+            INSERT INTO subscriptions (user_id, book_id)
+            -- Выбираем значения для вставки
+            SELECT :user_id, :book_id
+            -- Проверяем, что в таблице subscriptions нет записей с такими же значениями полей book_id и user_id,
+            -- удовлетворяющими условиям dt_take <= datetime('now') и dt_return > datetime('now')
+            WHERE NOT EXISTS (
+                SELECT 1 FROM subscriptions 
+                WHERE book_id = :book_id AND user_id = :user_id AND dt_new <= datetime('now', 'localtime') AND dt_delete > datetime('now', 'localtime')               
+            ) 
+            -- Проверяем, что в таблице forms есть записи с такими же значениями полей book_id и эта книга выдана, но не подписчику
+            AND EXISTS (
+                SELECT 1 FROM forms 
+                WHERE book_id = :book_id AND dt_take <= datetime('now', 'localtime') AND dt_return > datetime('now', 'localtime')
+                AND user_id != :user_id                                    
+            )
+            -- Проверяем, что в таблице books есть записи с такими же значениями полей book_id и книга активна
+            AND EXISTS (
+                SELECT 1 FROM books 
+                WHERE id = :book_id AND is_on = 1)
+            """, 
+            {'book_id': book_id, 'user_id': user_id})
+
+            rows = self.__cur.rowcount
+            if rows <= 0:
+                return (False, f"вы уже подписаны на эту книгу (проверьте ваши подписки в личном кабинете).")
+            self.__db.commit()                             
+
         except sqlite3.Error as err:
-            print(f'Ошибка смены статуса книги в БД - {str(err)}')
+            print(f'Ошибка при подписке на книгу в БД - {str(err)}')
             return (False, str(err))
-        return (True, "")
+        return (True, rows)
+
+    def unsubscribeBook(self, book_id: int, user_id: int) -> tuple[bool, int | str]:        
+        """
+        Прекращает подписку на книгу, заносит в лог инфо о завершении подписки на книгу
+
+        :params title: user_id: id пользователя, book_id: id книги
+        :return: кортеж с информацией о подписке на книгу (статус добавления(True/False))
+        """
+        try:            
+            
+            self.__cur.execute("""
+            UPDATE subscriptions 
+            SET dt_delete = datetime('now', 'localtime')
+            WHERE user_id = :user_id 
+            AND book_id = :book_id
+            AND dt_new <= datetime('now', 'localtime')  
+            AND dt_delete > datetime('now', 'localtime')  
+            """, 
+            {'book_id': book_id, 'user_id': user_id})
+
+            rows = self.__cur.rowcount
+            if rows <= 0:
+                return (False, f"вы еще не подписаны на эту книгу (проверьте подписки в личном кабинете).")
+            self.__db.commit()                             
+
+        except sqlite3.Error as err:
+            print(f'Ошибка отписки на книгу в БД - {str(err)}')
+            return (False, str(err))
+        return (True, rows)   
+
+    def getSubscriptions(self, user_id: Optional[int] = 0) -> list[tuple[int, int, str, str, int, int, str, str, str]]:
+        """
+        Возвращает информацию о подписках, которые есть у пользователя(ей)
+        
+        :param user_id: id пользователя (опционально)
+        :return: кортеж (код книги, id книги, название книги, автор книги, год издания, 
+        id пользователя(оформившего подписку), имя пользователя, 
+        дата и время начала подписки книги, 
+        дата и время срока подписки
+        """
     
-    def getBook(self, book_id: int) -> Tuple[str, str, int, str]:
+        try: 
+            if user_id:           
+                self.__cur.execute('SELECT * FROM vw_subscriptions WHERE user_id = ?', (user_id,))
+            else:
+                self.__cur.execute('SELECT * FROM vw_subscriptions')
+            res = self.__cur.fetchall()
+            if res: return res
+        except sqlite3.Error as err:
+            print(f'Ошибка чтения оформленных подписок из БД - {str(err)}')
+        return []      
+
+    def getRules(self) -> list[tuple[int, str]]:
+        """
+        Возвращает список правил проекта      
+        
+        :return: кортеж (id правила, описание правила)
+        """    
+        try: 
+            self.__cur.execute('SELECT * FROM rules WHERE is_on = 1')
+            res = self.__cur.fetchall()
+            if res: return res
+        except sqlite3.Error as err:
+            print(f'Ошибка чтении свода правил проекта из БД - {str(err)}')
+        return []  
+    
+    
+    def getBook(self, book_id: int) -> tuple[str, str, int, str]:
         """
         Возвращает информацию о книге по ее идентификатору
 
@@ -227,15 +301,14 @@ class FDataBase:
         try:
             # Передаем book_id в метод execute() в виде кортежа
             self.__cur.execute(sql, (book_id,))
-            res = self.__cur.fetchone()
-            rows = self.__cur.rowcount
+            res = self.__cur.fetchone()            
             if res: return res
         except sqlite3.Error as err:
             print(f'Ошибка чтения книги из БД - {str(err)}')
         return ()
     
     
-    def getAvailableBooks(self) -> list[Tuple[int, str, str, str, int, str, str]]:
+    def getAvailableBooks(self) -> list[tuple[int, str, str, str, int, str, str]]:
         """
         Возвращает информацию обо всех доступных к выдаче книгах в каталоге
         
@@ -251,7 +324,7 @@ class FDataBase:
             print(f'Ошибка чтения списка доступных книг из БД - {str(err)}')
         return []
     
-    def getTakenBooks(self, user_id: Optional[int] = 0) -> list[Tuple[int, int, str, str, str, int, int, str, str, str]]:
+    def getTakenBooks(self, user_id: Optional[int] = 0) -> list[tuple[int, int, str, str, str, int, int, str, str, str]]:
         """
         Возвращает информацию о книгах, которые сейчас у пользователя(ей) на руках
         
@@ -271,7 +344,7 @@ class FDataBase:
             print(f'Ошибка чтения списка выданных книг из БД - {str(err)}')
         return []
     
-    def getBookLog(self, user_id: Optional[int] = 0) -> list[Tuple[int, int, str, str, int, int, str, str, str]]:
+    def getBookLog(self, user_id: Optional[int] = 0) -> list[tuple[int, int, str, str, int, int, str, str, str]]:
         """
         Возвращает информацию о всех действиях пользователя(ей) с книгами
         
@@ -291,7 +364,7 @@ class FDataBase:
             print(f'Ошибка чтения списка операций(лога) из БД - {str(err)}')
         return []
     
-    def getGenres(self) -> list[Tuple[int, str]]:
+    def getGenres(self) -> list[tuple[int, str]]:
         """
         Возвращает справочник жанров литературы
         
@@ -306,7 +379,7 @@ class FDataBase:
             print(f'Ошибка чтения списка жанров из БД - {str(err)}')
         return []
     
-    def addFeedback(self, msg: str, user_id: int) -> Tuple[bool, int | str]:        
+    def addFeedback(self, msg: str, user_id: int) -> tuple[bool, int | str]:        
         """
         Добавляет новое обращение пользователя (сообщение об обратной связи) в БД
 
@@ -319,31 +392,53 @@ class FDataBase:
             feedback_id = self.__cur.lastrowid
             self.__db.commit()            
         except sqlite3.Error as err:
-            print(f'Ошибка добавления сообщения в БД - {str(err)}')
+            print(f'Ошибка при добавлении обращения ТП в БД - {str(err)}')
             return (False, str(err))
         return (True, feedback_id)
     
-    def getAllFeedbacks(self) -> list[Tuple[int, str, str, str, str]]:
+    def closeFeedback(self, fb_id: int) -> tuple[bool, int | str]:        
+        """
+        Закрывает обращение пользователя в ТП
+
+        :params title: user_id: id пользователя, fb_id: id обращения
+        :return: кортеж с информацией о смене статуса по обращению (статус изменения(True/False), 
+        кол-во закрытых обращений)
+        """
+        try:            
+            
+            self.__cur.execute("""
+            UPDATE feedbacks 
+            SET dt_delete = datetime('now', 'localtime')
+            WHERE id = :fb_id
+            AND dt_new <= datetime('now', 'localtime')  
+            AND dt_delete > datetime('now', 'localtime')    
+            """, 
+            {'fb_id': fb_id})
+
+            rows = self.__cur.rowcount
+            if rows <= 0:
+                return (False, f"отсутствует обращение с таким id или оно уже закрыто")
+            self.__db.commit()                             
+
+        except sqlite3.Error as err:
+            print(f'Ошибка при закрытии обращения пользователя в БД - {str(err)}')
+            return (False, str(err))
+        return (True, rows) 
+    
+    def getAllFeedbacks(self) -> list[tuple[int, str, str, str, str]]:
         """
         Возвращает информацию обо всех обращениях пользователей
         
         :return: кортеж (id обращения, текст сообщения, email пользователя, дата обращения, 
         тип последнего события, связанного с обращением)
-        """
-        # запрос
-        sql = (f"SELECT fb.id, fb.msg, u.email, fb.dt, s.status \n" 
-              f"FROM feedbacks as fb \n"
-              f"JOIN users as u ON fb.user_id = u.id \n"
-              f"JOIN fb_statuses as s ON fb.status_id = s.id \n"
-              f"ORDER BY fb.dt DESC")
-        
+        """        
         try:            
-            self.__cur.execute(sql)
-            res = self.__cur.fetchall()            
+            self.__cur.execute('SELECT * FROM vw_feedbacks')
+            res = self.__cur.fetchall() 
+            if res: return res           
         except sqlite3.Error as err:
-            print(f'Ошибка чтения списка меню из БД - {str(err)}')
-            return ()
-        if res: return res
+            print(f'Ошибка чтения списка меню из БД - {str(err)}')            
+        return []
 
 
     

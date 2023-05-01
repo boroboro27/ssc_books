@@ -10,4 +10,40 @@
     <p><textarea name="message" id="1" cols="41" rows="7" required></textarea></p>
     <p><input type="submit" value="Отправить" /></p>
 </form>
+<br>
+{% if is_admin == 1 %}
+<p><label>.:<b>: ОБРАЩЕНИЯ ПОЛЬЗОВАТЕЛЕЙ :</b>:.</label></p>
+<table>
+  <thead>
+    <tr>
+      <th>ID обращения</th>
+      <th>Пользователь</th>
+      <th>Текст обращения</th>
+      <th>Дата поступления</th>
+      <th>Дата закрытия</th>      
+      <th>Действие</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for fb in feedbacks %}
+    <tr>      
+      <td>{{ fb.id }}</td>
+      <td>{{ fb.email }}</td>
+      <td>{{ fb.msg }}</td>
+      <td>{{ fb.dt_open }}</td>
+      <td>{{ fb.dt_close }}</td>      
+      <td>
+        {% if fb.dt_close == '31.12.9999 00:00' %}
+        <form method="get" action="{{ url_for('close_feedback', fb_id=fb.id) }}" name='fb_id'>
+          <input type="submit" value="закрыть">
+        </form>
+        {% else %}
+        закрыто      
+        {% endif %}
+      </td>       
+    </tr>    
+    {% endfor %}
+  </tbody>
+</table>
+{% endif %}
 {% endblock %}
