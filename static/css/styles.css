@@ -6,6 +6,7 @@ body {
     height: 100%;
     width: 100%;
     box-sizing: border-box;
+    padding-top: 25px;
 }
 
 a {
@@ -21,6 +22,14 @@ a:hover {
 .clear {
     clear: both;
 }
+
+nav {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: 9999;
+  }
 
 ul.mainmenu {
     list-style: none;
@@ -45,7 +54,7 @@ ul.mainmenu {
 }
 
 ul.mainmenu li:last-child {
-    margin-right: 30%;
+    margin-right:30%;
 }
 
 ul.mainmenu li a {
