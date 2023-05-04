@@ -15,14 +15,24 @@ application.debug = True
 application.config['SECRET_KEY'] = config.SECRET_KEY
 application.config['MAIL_SERVER'] = config.MAIL_SERVER
 application.config['MAIL_PORT'] = config.MAIL_PORT
-#application.config['MAIL_USE_TLS'] = 
+# application.config['MAIL_USE_TLS'] =
 application.config['MAIL_USE_SSL'] = config.MAIL_USE_SSL
-application.config['MAIL_USERNAME'] = config.MAIL_USERNAME  # введите свой адрес электронной почты здесь
-application.config['MAIL_DEFAULT_SENDER'] = config.MAIL_DEFAULT_SENDER  # и здесь
+# введите свой адрес электронной почты здесь
+application.config['MAIL_USERNAME'] = config.MAIL_USERNAME
+# и здесь
+application.config['MAIL_DEFAULT_SENDER'] = config.MAIL_DEFAULT_SENDER
 application.config['MAIL_PASSWORD'] = config.MAIL_PASSWORD  # введите пароль
 
 mail = Mail(application)
 
+def sendMail(subject, body, users):
+    with mail.connect() as conn:
+        for user in users:
+            msg = Message(recipients=[user],
+                        body=body,
+                        subject=subject)
+
+            conn.send(msg)
 
 def connect_db():
     """
@@ -178,9 +188,8 @@ def subscribe_book(book_id):
             flash(f"Ошибка при подписке на книгу: {res[1]}. Если не удается устранить ошибку самостоятельно, \n"
                   f"сообщите, пожалуйста, нам об ошибке через форму обратной связи.", category='error')
         else:
-            msg = Message("Оформлена подписка", recipients=['rsborodin@mail.ru'])
-            msg.body = f"Успешно оформлено подписок - {res[1]}."
-            mail.send(msg)
+            users=['rsborodin@mail.ru']            
+            sendMail("Оформлена подписка", f"Успешно оформлено подписок - {res[1]}.", users=users)
             flash((f"Успешно оформлено подписок: {res[1]}. Теперь мы будем сообщать вам, если книга возвращается на полку "
                    f'в зоне обмена "Книжного перекрестка".'), category='success')
 
