@@ -29,7 +29,7 @@ nav {
     left: 0;
     width: 100%;
     z-index: 9999;
-  }
+}
 
 ul.mainmenu {
     list-style: none;
@@ -47,14 +47,14 @@ ul.mainmenu {
 }
 
 .main-menu li {
-    display: flex;    
+    display: flex;
     justify-content: flex-start;
     margin-right: 10px;
     text-align: left;
 }
 
 ul.mainmenu li:last-child {
-    margin-right:30%;
+    margin-right: 30%;
 }
 
 ul.mainmenu li a {
@@ -98,8 +98,8 @@ textarea {
     margin-bottom: 10px;
 }
 
-.form-add-book label {  
-    font-size: 16px;  
+.form-add-book label {
+    font-size: 16px;
     display: inline-block;
     min-width: 80px;
     margin-bottom: 10px;
@@ -110,7 +110,9 @@ textarea {
 }
 
 .form-add-book input[type=submit],
-input[type=text], textarea, select {
+input[type=text],
+textarea,
+select {
     font-size: 16px;
     padding: 7px;
     border-radius: 5px;
@@ -138,6 +140,15 @@ input[type=text], textarea, select {
     margin-bottom: 10px;
 }
 
+.subscription input {
+    border: 1px solid #000000;
+    background: #ffd23e;
+    color: #000000;
+    border-radius: 2px;
+    margin-bottom: 0px;
+    font-size: 14px;
+}
+
 .flash {
     padding: 10px;
     border-radius: 5px;
@@ -146,7 +157,7 @@ input[type=text], textarea, select {
     margin-left: 0px;
     margin-right: 0%;
     text-align: left;
-  }
+}
 
 .flash.success {
     border: 1px solid #21db56;
@@ -201,4 +212,46 @@ tr:nth-child(even) {
 
 tr:hover {
     background-color: #ddd;
+}
+
+.tabs {
+    width: 100%;
+    padding: 0px;
+    margin: 0 auto;
+}
+
+.tabs input[type="radio"] {
+    display: none;
+}
+
+.tabs div {
+    /* скрыть контент по умолчанию */
+    display: none;
+    padding: 12px;
+    border: 1px solid #C0C0C0;
+    background: #FFFFFF;
+}
+
+.tabs label {
+    display: inline-block;
+    padding: 7px;
+    margin: 0 -5px -1px 0;
+    text-align: center;
+    color: #666666;
+    border: 1px solid #C0C0C0;
+    background: #E0E0E0;
+    cursor: pointer;
+}
+
+.tabs input:checked+label {
+    color: #000000;
+    border: 1px solid #C0C0C0;
+    border-bottom: 1px solid #FFFFFF;
+    background: #FFFFFF;
+}
+
+/* отобразить контент, связанный с вабранной радиокнопкой (input type="radio") */
+#tab_1:checked~#tbl_1,
+#tab_2:checked~#tbl_2 {
+    display: block;
 }

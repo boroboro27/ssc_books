@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
- 
-{% block content %} 
-{{ super() }} 
+
+{% block content %}
+{{ super() }}
 {% for cat, msg in get_flashed_messages(True) %}
 <div class="flash {{cat}}">{{msg}}</div>
 {% endfor %}
@@ -11,76 +11,90 @@
 <form class="form-take-book">
   <label for="book_code"></label>
   <input type="text" id="" name="book_code">
-  <input formaction="{{url_for('take_book')}}" formmethod="post" type="submit" value="Взять с полки" />  
+  <input formaction="{{url_for('take_book')}}" formmethod="post" type="submit" value="Взять с полки" />
 </form>
 <br>
-<p><label>.:<b>: СВОБОДНЫЕ КНИГИ :</b>:.</label></p>
-<table>
-  <thead>
-    <tr>
-      <th>Код книги</th>
-      <th>Название</th>
-      <th>Автор</th>
-      <th>Жанр</th>
-      <th>Год издания</th>
-      <th>Владелец</th>
-      <th>Дата добавления</th>
-    </tr>
-  </thead>
-  <tbody>
-    {% for book in avl_books %}
-    <tr>      
-      <td>{{ book.code }}</td>
-      <td>{{ book.title }}</td>
-      <td>{{ book.author }}</td>
-      <td>{{ book.genre }}</td>
-      <td>{{ book.year }}</td>
-      <td>{{ book.owner }}</td>
-      <td>{{ book.dt_new }}</td>      
-    </tr>    
-    {% endfor %}
-  </tbody>
-</table>
-<br>
-<p><label>.:<b>: ВЫДАННЫЕ КНИГИ :</b>:.</label></p>
-<table>
-  <thead>
-    <tr>
-      <th>Код книги</th>
-      <th>Название</th>
-      <th>Автор</th>
-      <th>Жанр</th>
-      <th>Год издания</th>
-      <th>Читатель</th>
-      <th>Дата выдачи</th>
-      <th>Срок возврата</th>
-      <th>Хочу прочитать</th>
-    </tr>
-  </thead>
-  <tbody>
-    {% for book in taken_books %}
-    <tr>      
-      <td>{{ book.code }}</td>
-      <td>{{ book.title }}</td>
-      <td>{{ book.author }}</td>
-      <td>{{ book.genre }}</td>
-      <td>{{ book.year }}</td>
-      <td>{{ book.user }}</td>
-      <td>{{ book.dt_take }}</td>   
-      <td>{{ book.deadline }}</td>
-      <td>
-        {% if book.user == user %}
-        <form method="post" action="{{ url_for('lk') }}">
-          <input type="submit" value="уже читаю">
-        </form>
-        {% else %}
-        <form method="get" action="{{ url_for('subscribe_book', book_id=book.id) }}">
-          <input type="submit" value="подписаться">
-        </form>
-        {% endif %}
-      </td>    
-    </tr>    
-    {% endfor %}
-  </tbody>
-</table>
+
+<div class="tabs">
+  <input type="radio" name="inset" value="" id="tab_1" checked>
+  <label for="tab_1">СВОБОДНЫЕ КНИГИ</label>
+
+  <input type="radio" name="inset" value="" id="tab_2">
+  <label for="tab_2">ВЫДАННЫЕ КНИГИ</label>  
+
+  <div id="tbl_1">
+    <table>
+      <thead>
+        <tr>
+          <th>Код книги</th>
+          <th>Название</th>
+          <th>Автор</th>
+          <th>Жанр</th>
+          <th>Год издания</th>
+          <th>Владелец</th>
+          <th>Дата добавления</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for book in avl_books %}
+        <tr>
+          <td>{{ book.code }}</td>
+          <td>{{ book.title }}</td>
+          <td>{{ book.author }}</td>
+          <td>{{ book.genre }}</td>
+          <td>{{ book.year }}</td>
+          <td>{{ book.owner }}</td>
+          <td>{{ book.dt_new }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>    
+  </div>
+  <div id="tbl_2">
+    <table>
+      <thead>
+        <tr>
+          <th>Код книги</th>
+          <th>Название</th>
+          <th>Автор</th>
+          <th>Жанр</th>
+          <th>Год издания</th>
+          <th>Читатель</th>
+          <th>Дата выдачи</th>
+          <th>Срок возврата</th>
+          <th>Хочу прочитать</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for book in taken_books %}
+        <tr>
+          <td>{{ book.book_code }}</td>
+          <td>{{ book.title }}</td>
+          <td>{{ book.author }}</td>
+          <td>{{ book.genre }}</td>
+          <td>{{ book.public_year }}</td>
+          <td>{{ book.user_name }}</td>
+          <td>{{ book.dt_take }}</td>
+          <td>{{ book.dt_deadline }}</td>
+          <td>
+            {% if book.user_name == user %}
+            <form method="post" action="{{ url_for('lk') }}">
+              <input type="submit" value="сейчас читаю">
+            </form>
+            {% elif book.subs_status == 1 %}
+            <form method="post" action="{{ url_for('lk') }}">
+              <input type="submit" value="уже подписан">
+            </form>
+            {% elif book.subs_status == 0 %}
+            <form method="get" action="{{ url_for('subscribe_book', book_id=book.book_id) }}" class="subscription">
+              <input type="submit" value="подписаться">
+            </form>        
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>  
+</div>
 {% endblock %}

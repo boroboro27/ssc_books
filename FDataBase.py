@@ -263,9 +263,9 @@ class FDataBase:
     
         try: 
             if user_id:           
-                self.__cur.execute('SELECT * FROM vw_subscriptions WHERE user_id = ?', (user_id,))
+                self.__cur.execute('SELECT * FROM vw_open_subs_wide WHERE user_id = ?', (user_id,))
             else:
-                self.__cur.execute('SELECT * FROM vw_subscriptions')
+                self.__cur.execute('SELECT * FROM vw_open_subs_wide')
             res = self.__cur.fetchall()
             if res: return res
         except sqlite3.Error as err:
@@ -287,16 +287,16 @@ class FDataBase:
         return []  
     
     
-    def getBook(self, book_id: int) -> tuple[str, str, int, str]:
+    def getBook(self, book_id: int) -> tuple[int, str, str, str, int]:
         """
         Возвращает информацию о книге по ее идентификатору
 
         :param book_id: идентификатор книги
-        :return: кортеж с информацией о книге (название, автор, год издания, email пользователя, который добавил книгу)
+        :return: кортеж с информацией о книге (код, название, автор, жанр, год издания)
         """
         # Параметризованный запрос с использованием знака вопроса вместо book_id
-        sql = (f"SELECT t1.title, t1.author, t1.year, t2.email \n" 
-              f"FROM books as t1 JOIN users as t2 ON t1.user_id = t2.id \n"
+        sql = (f"SELECT t1.code, t1.title, t1.author, g.genre, t1.public_year \n" 
+              f"FROM books as t1 JOIN genres as g ON t1.genre_id = g.id \n"
               f"WHERE t1.id = ?")
         try:
             # Передаем book_id в метод execute() в виде кортежа
@@ -324,20 +324,28 @@ class FDataBase:
             print(f'Ошибка чтения списка доступных книг из БД - {str(err)}')
         return []
     
-    def getTakenBooks(self, user_id: Optional[int] = 0) -> list[tuple[int, int, str, str, str, int, int, str, str, str]]:
+    def getTakenBooks(self, user_id: int, for_lk: bool) -> list[tuple[int, int, str, str, str, int, int, str, str, str]]:
         """
         Возвращает информацию о книгах, которые сейчас у пользователя(ей) на руках
         
-        :param user_id: id пользователя (опционально)
+        :param user_id: id пользователя, for_lk: указатель(true/false) о том, что запрос делается для отображения в ЛК или нет
         :return: кортеж (код книги, id книги, название книги, автор книги, жанр, год издания, 
         id пользователя(взявшего книгу), имя пользователя, дата и время выдачи книги, дата и время срока возврата
         """
     
         try: 
-            if user_id:           
+            if for_lk:           
                 self.__cur.execute('SELECT * FROM vw_taken_books WHERE user_id = ?', (user_id,))
             else:
-                self.__cur.execute('SELECT * FROM vw_taken_books')
+                self.__cur.execute("""
+                SELECT tb.*, 
+                    CASE WHEN s.subs_book_id IS NULL THEN 0
+                    ELSE 1
+                    END AS subs_status
+                FROM vw_taken_books as tb
+                LEFT JOIN vw_open_subs_trim as s ON tb.book_id = s.subs_book_id
+                AND s.subs_user_id = :user_id
+                """, {'user_id': user_id})
             res = self.__cur.fetchall()
             if res: return res
         except sqlite3.Error as err:

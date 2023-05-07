@@ -89,8 +89,11 @@ def index():
         else:
             db = get_db()
             dbase = FDataBase(db)
+            user_id = dbase.getUser(session['userLogged'])
             return render_template('index.html', title='Полка "Книжного перекрестка"',
-                                   avl_books=dbase.getAvailableBooks(), taken_books=dbase.getTakenBooks(),
+                                   avl_books=dbase.getAvailableBooks(), 
+                                   #False, т.е. не для отображения в ЛК, а для Главной
+                                   taken_books=dbase.getTakenBooks(user_id[0], False),
                                    menu=dbase.getMenu(), user=session['userLogged'].split('@')[0])
     else:
         return redirect(url_for('login'))
@@ -153,7 +156,7 @@ def take_book():
         else:
             flash(f"Ошибка при указании кода книги: код должен состоять из 5 цифр. Если не удается устранить ошибку самостоятельно, \n"
                   f"сообщите, пожалуйста, нам об ошибке через форму обратной связи.", category='error')
-        return redirect(url_for('index'))
+        return redirect(url_for('lk'))
     else:
         return redirect(url_for('login'))
 
@@ -184,13 +187,17 @@ def subscribe_book(book_id):
     if 'userLogged' in session:
         user_id = dbase.getUser(session['userLogged'])
         res = dbase.subscribeBook(book_id, user_id[0])
-        if not res[0]:
+        book = dbase.getBook(book_id)
+        if not res[0] or not book:
             flash(f"Ошибка при подписке на книгу: {res[1]}. Если не удается устранить ошибку самостоятельно, \n"
                   f"сообщите, пожалуйста, нам об ошибке через форму обратной связи.", category='error')
-        else:
-            users=['rsborodin@mail.ru']            
-            sendMail("Оформлена подписка", f"Успешно оформлено подписок - {res[1]}.", users=users)
-            flash((f"Успешно оформлено подписок: {res[1]}. Теперь мы будем сообщать вам, если книга возвращается на полку "
+        else: 
+            msg = (f"Оформлена новая подписка на книгу: {res[1]}. Книга: #{book[0]}, название: '{book[1]}', "
+                   f"автор: {book[2]}, год издания: {book[4]}." 
+                   f'Теперь мы будем сообщать вам, если книга возвращается на полку в зоне обмена "Книжного перекрестка".')                    
+            
+            sendMail("Подписка на книгу", msg, users=[session['userLogged']])
+            flash((f"Оформлено новых подписок: {res[1]}. Теперь мы будем сообщать вам, если книга возвращается на полку "
                    f'в зоне обмена "Книжного перекрестка".'), category='success')
 
         return redirect(url_for('lk'))
@@ -237,7 +244,8 @@ def lk():
         dbase = FDataBase(db)
         user_id = dbase.getUser(session['userLogged'])
         return render_template('lk.html', title='Личный кабинет',
-                               taken_books=dbase.getTakenBooks(user_id[0]),
+                               #True - т.е. для отображения в ЛК, а не на главной
+                               taken_books=dbase.getTakenBooks(user_id[0], True), 
                                subscriptions=dbase.getSubscriptions(
                                    user_id[0]),
                                book_log=dbase.getBookLog(user_id[0]),
