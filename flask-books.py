@@ -6,7 +6,7 @@ from flask import (Flask, flash, g, redirect, render_template, request,
 from flask_mail import Mail, Message
 
 from FDataBase import FDataBase
-import data.config as config
+import conf.config as config
 
 application = Flask(__name__)
 
@@ -25,14 +25,16 @@ application.config['MAIL_PASSWORD'] = config.MAIL_PASSWORD  # введите п�
 
 mail = Mail(application)
 
+
 def sendMail(subject, body, users):
     with mail.connect() as conn:
         for user in users:
             msg = Message(recipients=[user],
-                        body=body,
-                        subject=subject)
+                          body=body,
+                          subject=subject)
 
             conn.send(msg)
+
 
 def connect_db():
     """
@@ -91,9 +93,10 @@ def index():
             dbase = FDataBase(db)
             user_id = dbase.getUser(session['userLogged'])
             return render_template('index.html', title='Полка "Книжного перекрестка"',
-                                   avl_books=dbase.getAvailableBooks(), 
-                                   #False, т.е. не для отображения в ЛК, а для Главной
-                                   taken_books=dbase.getTakenBooks(user_id[0], False),
+                                   avl_books=dbase.getAvailableBooks(),
+                                   # False, т.е. не для отображения в ЛК, а для Главной
+                                   taken_books=dbase.getTakenBooks(
+                                       user_id[0], False),
                                    menu=dbase.getMenu(), user=session['userLogged'].split('@')[0])
     else:
         return redirect(url_for('login'))
@@ -191,11 +194,11 @@ def subscribe_book(book_id):
         if not res[0] or not book:
             flash(f"Ошибка при подписке на книгу: {res[1]}. Если не удается устранить ошибку самостоятельно, \n"
                   f"сообщите, пожалуйста, нам об ошибке через форму обратной связи.", category='error')
-        else: 
+        else:
             msg = (f"Оформлена новая подписка на книгу: {res[1]}. Книга: #{book[0]}, название: '{book[1]}', "
-                   f"автор: {book[2]}, год издания: {book[4]}." 
-                   f'Теперь мы будем сообщать вам, если книга возвращается на полку в зоне обмена "Книжного перекрестка".')                    
-            
+                   f"автор: {book[2]}, год издания: {book[4]}."
+                   f'Теперь мы будем сообщать вам, если книга возвращается на полку в зоне обмена "Книжного перекрестка".')
+
             sendMail("Подписка на книгу", msg, users=[session['userLogged']])
             flash((f"Оформлено новых подписок: {res[1]}. Теперь мы будем сообщать вам, если книга возвращается на полку "
                    f'в зоне обмена "Книжного перекрестка".'), category='success')
@@ -244,8 +247,9 @@ def lk():
         dbase = FDataBase(db)
         user_id = dbase.getUser(session['userLogged'])
         return render_template('lk.html', title='Личный кабинет',
-                               #True - т.е. для отображения в ЛК, а не на главной
-                               taken_books=dbase.getTakenBooks(user_id[0], True), 
+                               # True - т.е. для отображения в ЛК, а не на главной
+                               taken_books=dbase.getTakenBooks(
+                                   user_id[0], True),
                                subscriptions=dbase.getSubscriptions(
                                    user_id[0]),
                                book_log=dbase.getBookLog(user_id[0]),
