@@ -1,4 +1,4 @@
-FROM ubuntu:22
+FROM ubuntu:22.04
 FROM python:3.10.6
 
 # установить каталог для приложения
