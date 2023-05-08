@@ -10,3 +10,4 @@ ssc-books_db_volume/
 data
 config.*
 conf
+uwsgi
