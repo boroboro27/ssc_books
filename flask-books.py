@@ -6,7 +6,7 @@ from flask import (Flask, flash, g, redirect, render_template, request,
 from flask_mail import Mail, Message
 
 from FDataBase import FDataBase
-import config
+import conf.config as config
 
 application = Flask(__name__)
 
@@ -42,7 +42,7 @@ def connect_db():
     conn: объект подключения к базе данных
     """
     db_path = os.path.join(
-        '/home/rsb27/python3/ssc-books/ssc-books_db_volume', 'ssc-books.db')
+        'data/', 'ssc-books.db')
     conn = sqlite3.connect(db_path)
     # Настраиваем, чтобы SQLite3 возвращал объект sqlite3.Row вместо обычного списка или кортежа,
     # потому что он предоставляет удобный способ доступа к данным в строке результата запроса.
@@ -74,7 +74,7 @@ def close_db(error):
     """
     if hasattr(g, 'link_db'):
         # создается дамп БД
-        with open("sql_damp.sql", "w") as f:
+        with open("data/sql_damp.sql", "w") as f:
             for sql in g.link_db.iterdump():
                 f.write(sql)
         # закрывается соединение с БД

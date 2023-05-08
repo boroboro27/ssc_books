@@ -1,0 +1,122 @@
+*** Starting uWSGI 2.0.21 (64bit) on [Mon May  8 09:48:26 2023] ***
+compiled with version: 11.3.0 on 11 April 2023 16:59:42
+os: Linux-5.19.0-41-generic #42~22.04.1-Ubuntu SMP PREEMPT_DYNAMIC Tue Apr 18 17:40:00 UTC 2
+nodename: rsb27
+machine: x86_64
+clock source: unix
+detected number of CPU cores: 4
+current working directory: /home/rsb27/python3/ssc-books
+detected binary path: /home/rsb27/python3/ssc-books/venv/bin/uwsgi
+!!! no internal routing support, rebuild with pcre support !!!
+your processes number limit is 55369
+your memory page size is 4096 bytes
+ *** WARNING: you have enabled harakiri without post buffering. Slow upload could be rejected on post-unbuffered webservers *** 
+detected max file descriptor number: 1024
+lock engine: pthread robust mutexes
+thunder lock: disabled (you can enable it with --thunder-lock)
+uwsgi socket 0 bound to TCP address :8080 fd 3
+uwsgi socket 1 bound to UNIX address uwsgi.sock fd 4
+Python version: 3.10.6 (main, Mar 10 2023, 10:55:28) [GCC 11.3.0]
+Python main interpreter initialized at 0x55d257c515b0
+python threads support enabled
+your server socket listen backlog is limited to 100 connections
+your mercy for graceful operations on workers is 60 seconds
+mapped 437424 bytes (427 KB) for 5 cores
+*** Operational MODE: preforking ***
+WSGI app 0 (mountpoint='') ready in 0 seconds on interpreter 0x55d257c515b0 pid: 8117 (default app)
+*** uWSGI is running in multiple interpreter mode ***
+spawned uWSGI master process (pid: 8117)
+spawned uWSGI worker 1 (pid: 8118, cores: 1)
+spawned uWSGI worker 2 (pid: 8119, cores: 1)
+spawned uWSGI worker 3 (pid: 8120, cores: 1)
+spawned uWSGI worker 4 (pid: 8121, cores: 1)
+spawned uWSGI worker 5 (pid: 8122, cores: 1)
+*** Stats server enabled on 127.0.0.1:8181 fd: 18 ***
+[pid: 8122|app: 0|req: 1/1] 127.0.0.1 () {50 vars in 1034 bytes} [Mon May  8 09:49:11 2023] GET / => generated 8060 bytes in 33 msecs (HTTP/1.1 200) 3 headers in 95 bytes (1 switches on core 0)
+[pid: 8122|app: 0|req: 2/2] 127.0.0.1 () {48 vars in 940 bytes} [Mon May  8 09:49:11 2023] GET /static/css/styles.css => generated 4296 bytes in 10 msecs via sendfile() (HTTP/1.1 200) 7 headers in 282 bytes (0 switches on core 0)
+[pid: 8121|app: 0|req: 1/3] 127.0.0.1 () {48 vars in 1114 bytes} [Mon May  8 09:49:12 2023] GET /static/img/icons8-%D0%BA%D0%BD%D0%B8%D0%B6%D0%BD%D0%B0%D1%8F-%D0%BF%D0%BE%D0%BB%D0%BA%D0%B0-3d-fluency-32.png => generated 2659 bytes in 14 msecs via sendfile() (HTTP/1.1 200) 7 headers in 393 bytes (0 switches on core 0)
+[pid: 8122|app: 0|req: 3/4] 127.0.0.1 () {52 vars in 1079 bytes} [Mon May  8 09:49:19 2023] GET / => generated 8060 bytes in 7 msecs (HTTP/1.1 200) 3 headers in 95 bytes (1 switches on core 0)
+[pid: 8122|app: 0|req: 4/5] 127.0.0.1 () {52 vars in 1053 bytes} [Mon May  8 09:49:19 2023] GET /static/css/styles.css => generated 0 bytes in 2 msecs (HTTP/1.1 304) 4 headers in 185 bytes (0 switches on core 0)
+[pid: 8122|app: 0|req: 5/6] 127.0.0.1 () {52 vars in 1083 bytes} [Mon May  8 09:49:21 2023] GET /lk => generated 12025 bytes in 20 msecs (HTTP/1.1 200) 3 headers in 96 bytes (1 switches on core 0)
+[pid: 8121|app: 0|req: 2/7] 127.0.0.1 () {52 vars in 1055 bytes} [Mon May  8 09:49:21 2023] GET /static/css/styles.css => generated 0 bytes in 1 msecs (HTTP/1.1 304) 4 headers in 185 bytes (0 switches on core 0)
+[pid: 8121|app: 0|req: 3/8] 127.0.0.1 () {52 vars in 1081 bytes} [Mon May  8 09:49:22 2023] GET / => generated 8060 bytes in 28 msecs (HTTP/1.1 200) 3 headers in 95 bytes (1 switches on core 0)
+[pid: 8122|app: 0|req: 6/9] 127.0.0.1 () {52 vars in 1053 bytes} [Mon May  8 09:49:22 2023] GET /static/css/styles.css => generated 0 bytes in 1 msecs (HTTP/1.1 304) 4 headers in 185 bytes (0 switches on core 0)
+[pid: 8122|app: 0|req: 7/10] 127.0.0.1 () {54 vars in 1112 bytes} [Mon May  8 09:50:19 2023] GET / => generated 8060 bytes in 8 msecs (HTTP/1.1 200) 3 headers in 95 bytes (1 switches on core 0)
+[pid: 8122|app: 0|req: 8/11] 127.0.0.1 () {52 vars in 1053 bytes} [Mon May  8 09:50:19 2023] GET /static/css/styles.css => generated 0 bytes in 2 msecs (HTTP/1.1 304) 4 headers in 185 bytes (0 switches on core 0)
+[pid: 8122|app: 0|req: 9/12] 127.0.0.1 () {52 vars in 1219 bytes} [Mon May  8 09:50:19 2023] GET /static/img/icons8-%D0%BA%D0%BD%D0%B8%D0%B6%D0%BD%D0%B0%D1%8F-%D0%BF%D0%BE%D0%BB%D0%BA%D0%B0-3d-fluency-32.png => generated 0 bytes in 1 msecs (HTTP/1.1 304) 4 headers in 310 bytes (0 switches on core 0)
+[pid: 8118|app: 0|req: 1/13] 127.0.0.1 () {60 vars in 1234 bytes} [Mon May  8 09:50:54 2023] POST /take_book => generated 193 bytes in 16 msecs (HTTP/1.1 302) 5 headers in 584 bytes (1 switches on core 0)
+[pid: 8119|app: 0|req: 1/14] 127.0.0.1 () {54 vars in 1457 bytes} [Mon May  8 09:50:54 2023] GET /lk => generated 12377 bytes in 40 msecs (HTTP/1.1 200) 4 headers in 225 bytes (1 switches on core 0)
+[pid: 8121|app: 0|req: 4/15] 127.0.0.1 () {52 vars in 1055 bytes} [Mon May  8 09:50:54 2023] GET /static/css/styles.css => generated 0 bytes in 1 msecs (HTTP/1.1 304) 4 headers in 185 bytes (0 switches on core 0)
+[pid: 8122|app: 0|req: 10/16] 127.0.0.1 () {54 vars in 1112 bytes} [Mon May  8 09:53:08 2023] GET / => generated 8060 bytes in 15 msecs (HTTP/1.1 200) 3 headers in 95 bytes (1 switches on core 0)
+[pid: 8122|app: 0|req: 11/17] 127.0.0.1 () {52 vars in 1053 bytes} [Mon May  8 09:53:08 2023] GET /static/css/styles.css => generated 0 bytes in 1 msecs (HTTP/1.1 304) 4 headers in 185 bytes (0 switches on core 0)
+[pid: 8122|app: 0|req: 12/18] 127.0.0.1 () {52 vars in 1219 bytes} [Mon May  8 09:53:08 2023] GET /static/img/icons8-%D0%BA%D0%BD%D0%B8%D0%B6%D0%BD%D0%B0%D1%8F-%D0%BF%D0%BE%D0%BB%D0%BA%D0%B0-3d-fluency-32.png => generated 0 bytes in 1 msecs (HTTP/1.1 304) 4 headers in 310 bytes (0 switches on core 0)
+[pid: 8122|app: 0|req: 13/19] 127.0.0.1 () {54 vars in 1112 bytes} [Mon May  8 09:53:13 2023] GET / => generated 8060 bytes in 8 msecs (HTTP/1.1 200) 3 headers in 95 bytes (1 switches on core 0)
+[pid: 8120|app: 0|req: 1/20] 127.0.0.1 () {52 vars in 1053 bytes} [Mon May  8 09:53:13 2023] GET /static/css/styles.css => generated 0 bytes in 22 msecs (HTTP/1.1 304) 4 headers in 185 bytes (0 switches on core 0)
+[pid: 8122|app: 0|req: 14/21] 127.0.0.1 () {52 vars in 1219 bytes} [Mon May  8 09:53:13 2023] GET /static/img/icons8-%D0%BA%D0%BD%D0%B8%D0%B6%D0%BD%D0%B0%D1%8F-%D0%BF%D0%BE%D0%BB%D0%BA%D0%B0-3d-fluency-32.png => generated 0 bytes in 1 msecs (HTTP/1.1 304) 4 headers in 310 bytes (0 switches on core 0)
+[pid: 8122|app: 0|req: 15/22] 127.0.0.1 () {54 vars in 1112 bytes} [Mon May  8 09:54:04 2023] GET / => generated 8060 bytes in 7 msecs (HTTP/1.1 200) 3 headers in 95 bytes (1 switches on core 0)
+[pid: 8120|app: 0|req: 2/23] 127.0.0.1 () {52 vars in 1053 bytes} [Mon May  8 09:54:04 2023] GET /static/css/styles.css => generated 0 bytes in 2 msecs (HTTP/1.1 304) 4 headers in 185 bytes (0 switches on core 0)
+[pid: 8122|app: 0|req: 16/24] 127.0.0.1 () {52 vars in 1219 bytes} [Mon May  8 09:54:04 2023] GET /static/img/icons8-%D0%BA%D0%BD%D0%B8%D0%B6%D0%BD%D0%B0%D1%8F-%D0%BF%D0%BE%D0%BB%D0%BA%D0%B0-3d-fluency-32.png => generated 0 bytes in 1 msecs (HTTP/1.1 304) 4 headers in 310 bytes (0 switches on core 0)
+Mon May  8 09:55:51 2023 - *** PAUSE (press start to resume, if you do not have a joypad send SIGTSTP) ***
+Mon May  8 09:55:51 2023 - *** worker 3 suspended ***
+Mon May  8 09:55:51 2023 - *** worker 1 suspended ***
+Mon May  8 09:55:51 2023 - *** worker 4 suspended ***
+Mon May  8 09:55:51 2023 - *** worker 2 suspended ***
+Mon May  8 09:55:51 2023 - *** worker 5 suspended ***
+Mon May  8 09:56:34 2023 - *** (SIGTSTP received) resuming workers ***
+Mon May  8 09:56:34 2023 - *** worker 1 resumed ***
+Mon May  8 09:56:34 2023 - *** worker 2 resumed ***
+Mon May  8 09:56:34 2023 - *** worker 4 resumed ***
+Mon May  8 09:56:34 2023 - *** worker 3 resumed ***
+Mon May  8 09:56:34 2023 - *** worker 5 resumed ***
+Gracefully killing worker 5 (pid: 8122)...
+Gracefully killing worker 3 (pid: 8120)...
+Gracefully killing worker 4 (pid: 8121)...
+Gracefully killing worker 2 (pid: 8119)...
+Gracefully killing worker 1 (pid: 8118)...
+...gracefully killing workers...
+worker 1 buried after 2 seconds
+worker 2 buried after 2 seconds
+worker 3 buried after 2 seconds
+worker 4 buried after 2 seconds
+worker 5 buried after 2 seconds
+binary reloading uWSGI...
+chdir() to /home/rsb27/python3/ssc-books
+closing all non-uwsgi socket fds > 2 (max_fd = 1024)...
+found fd 3 mapped to socket 0 (:8080)
+found fd 4 mapped to socket 1 (uwsgi.sock)
+running /home/rsb27/python3/ssc-books/venv/bin/uwsgi
+[uWSGI] getting INI configuration from uwsgi.ini
+*** Starting uWSGI 2.0.21 (64bit) on [Mon May  8 09:56:41 2023] ***
+compiled with version: 11.3.0 on 11 April 2023 16:59:42
+os: Linux-5.19.0-41-generic #42~22.04.1-Ubuntu SMP PREEMPT_DYNAMIC Tue Apr 18 17:40:00 UTC 2
+nodename: rsb27
+machine: x86_64
+clock source: unix
+detected number of CPU cores: 4
+current working directory: /home/rsb27/python3/ssc-books
+detected binary path: /home/rsb27/python3/ssc-books/venv/bin/uwsgi
+!!! no internal routing support, rebuild with pcre support !!!
+your processes number limit is 55369
+your memory page size is 4096 bytes
+ *** WARNING: you have enabled harakiri without post buffering. Slow upload could be rejected on post-unbuffered webservers *** 
+detected max file descriptor number: 1024
+lock engine: pthread robust mutexes
+thunder lock: disabled (you can enable it with --thunder-lock)
+uwsgi socket 0 inherited INET address :8080 fd 3
+uwsgi socket 1 inherited UNIX address uwsgi.sock fd 4
+Python version: 3.10.6 (main, Mar 10 2023, 10:55:28) [GCC 11.3.0]
+Python main interpreter initialized at 0x555a6fed2400
+python threads support enabled
+your server socket listen backlog is limited to 100 connections
+your mercy for graceful operations on workers is 60 seconds
+mapped 437424 bytes (427 KB) for 5 cores
+*** Operational MODE: preforking ***
+WSGI app 0 (mountpoint='') ready in 0 seconds on interpreter 0x555a6fed2400 pid: 8117 (default app)
+*** uWSGI is running in multiple interpreter mode ***
+gracefully (RE)spawned uWSGI master process (pid: 8117)
+spawned uWSGI worker 1 (pid: 8629, cores: 1)
+spawned uWSGI worker 2 (pid: 8630, cores: 1)
+spawned uWSGI worker 3 (pid: 8631, cores: 1)
+spawned uWSGI worker 4 (pid: 8632, cores: 1)
+spawned uWSGI worker 5 (pid: 8633, cores: 1)
+*** Stats server enabled on 127.0.0.1:8181 fd: 18 ***
