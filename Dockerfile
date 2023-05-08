@@ -10,7 +10,7 @@ COPY . .
 # установка зависимостей
 RUN pip3 install --no-cache-dir -r requirements.txt
 
-# Установка пакетов tzdata и locales
+# Установка пакетов tzdata для редактирования часового пояса
 RUN apt update && apt install -y tzdata && rm -rf /var/lib/apt/lists/*
 
 # Установка часового пояса Москвы
