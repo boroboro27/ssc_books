@@ -6,7 +6,7 @@ from flask import (Flask, flash, g, redirect, render_template, request,
 from flask_mail import Mail, Message
 
 from FDataBase import FDataBase
-import conf.config as config
+import data.config as config
 
 application = Flask(__name__)
 

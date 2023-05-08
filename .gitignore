@@ -1,14 +1,4 @@
 __pycache__
 .vscode
 venv
-*.db
-*.sqbpro
-sql_damp.sql
-жанры.*
-книги.*
-ssc-books_db_volume/
 data
-config.*
-conf
-uwsgi
-uwsgi.*
