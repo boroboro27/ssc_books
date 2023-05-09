@@ -7,6 +7,6 @@
 {% endfor %}
 <form action="{{url_for('verify_code')}}" method="post" class="form-verify_code">    
     <p><label>Введите полученный код подтверждения:</label> <input type="text" name="code", value="" required /> </p>    
-    <p><input type="submit" value="Получить код"/></p>
+    <p><input type="submit" value="Подтвердить"/></p>
 </form>
 {% endblock %}
