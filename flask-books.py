@@ -7,6 +7,8 @@ from flask_mail import Mail, Message
 
 from FDataBase import FDataBase
 import conf.config as config
+import random
+from smtplib import SMTPException
 
 application = Flask(__name__)
 
@@ -26,14 +28,24 @@ application.config['MAIL_PASSWORD'] = config.MAIL_PASSWORD  # введите п�
 mail = Mail(application)
 
 
-def sendMail(subject, body, users):
-    with mail.connect() as conn:
-        for user in users:
-            msg = Message(recipients=[user],
-                          body=body,
-                          subject=subject)
+def sendMail(subject: str, body: str, users: list[str]) -> tuple[bool, str | None]:
+    """
+        Отправляет письмо на адреса электронной почты пользователей
 
-            conn.send(msg)
+        :param: subject: заголовок письма, body: текст письма, users: список адресов эл. почты
+        :return: кортеж с информацией о статусе отправки письма (true/false и описание ошибки(при наличии))
+        """   
+    try:
+        with mail.connect() as conn:
+            for user in users:
+                msg = Message(recipients=[user],
+                            body=body,
+                            subject=subject)
+
+                conn.send(msg)
+            return (True, )
+    except SMTPException as err:
+        return (False, str(err))
 
 
 def connect_db():
@@ -85,7 +97,7 @@ def close_db(error):
 
 @application.route("/", methods=["POST", "GET"])
 def index():
-    if 'userLogged' in session:
+    if 'logged_in' in session:
         if request.method == "POST":
             pass
         else:
@@ -95,8 +107,7 @@ def index():
             return render_template('index.html', title='Полка "Книжного перекрестка"',
                                    avl_books=dbase.getAvailableBooks(),
                                    # False, т.е. не для отображения в ЛК, а для Главной
-                                   taken_books=dbase.getTakenBooks(
-                                       user_id[0], False),
+                                   taken_books=dbase.getTakenBooks(user_id[0], False),
                                    menu=dbase.getMenu(), user=session['userLogged'].split('@')[0])
     else:
         return redirect(url_for('login'))
@@ -104,7 +115,7 @@ def index():
 
 @application.route("/about")
 def about():
-    if 'userLogged' in session:
+    if 'logged_in' in session:
         db = get_db()
         dbase = FDataBase(db)
         return render_template('about.html', title='О проекте "Книжный перекресток"', menu=dbase.getMenu(),
@@ -117,7 +128,7 @@ def about():
 def add_book():
     db = get_db()
     dbase = FDataBase(db)
-    if 'userLogged' in session:
+    if 'logged_in' in session:
         user_id = dbase.getUser(session['userLogged'])
         if request.method == "POST":
             # title, author, year, status, add_userid
@@ -145,7 +156,7 @@ def add_book():
 def take_book():
     db = get_db()
     dbase = FDataBase(db)
-    if 'userLogged' in session:
+    if 'logged_in' in session:
         user_id = dbase.getUser(session['userLogged'])
         book_code = request.form['book_code'].strip()
         if book_code.isdigit() and len(book_code) == 5:
@@ -168,7 +179,7 @@ def take_book():
 def return_book_get(book_code):
     db = get_db()
     dbase = FDataBase(db)
-    if 'userLogged' in session:
+    if 'logged_in' in session:
         user_id = dbase.getUser(session['userLogged'])
         res = dbase.returnBook(book_code, user_id[0])
         if not res[0]:
@@ -187,7 +198,7 @@ def return_book_get(book_code):
 def subscribe_book(book_id):
     db = get_db()
     dbase = FDataBase(db)
-    if 'userLogged' in session:
+    if 'logged_in' in session:
         user_id = dbase.getUser(session['userLogged'])
         res = dbase.subscribeBook(book_id, user_id[0])
         book = dbase.getBook(book_id)
@@ -212,7 +223,7 @@ def subscribe_book(book_id):
 def unsubscribe_book(book_id):
     db = get_db()
     dbase = FDataBase(db)
-    if 'userLogged' in session:
+    if 'logged_in' in session:
         user_id = dbase.getUser(session['userLogged'])
         res = dbase.unsubscribeBook(book_id, user_id[0])
         if not res[0]:
@@ -229,7 +240,7 @@ def unsubscribe_book(book_id):
 
 @application.route("/rules", methods=["POST", "GET"])
 def rules():
-    if 'userLogged' in session:
+    if 'logged_in' in session:
         db = get_db()
         dbase = FDataBase(db)
         return render_template('rules.html', title='Правила проекта "Книжный перекрёсток"',
@@ -242,7 +253,7 @@ def rules():
 
 @application.route("/lk", methods=["POST", "GET"])
 def lk():
-    if 'userLogged' in session:
+    if 'logged_in' in session:
         db = get_db()
         dbase = FDataBase(db)
         user_id = dbase.getUser(session['userLogged'])
@@ -264,36 +275,76 @@ def lk():
 
 @application.route("/login", methods=["POST", "GET"])
 def login():
-    if 'userLogged' in session:
-        return redirect(url_for('index'))
-    else:
-        db = get_db()
-        dbase = FDataBase(db)
+    if 'logged_in' in session:
+        return redirect(url_for('rules'))    
+    
+    db = get_db()
+    dbase = FDataBase(db)    
+    if request.method == 'POST':
+        email = request.form['email'].lower().strip()
+        if email.split('@')[1] == 'tele2.ru':
+            session['userLogged'] = email
+            code = random.randint(1000, 9999) # генерация случайного кода
+            session['code'] = code # сохранение кода в сессии
+            is_mail = sendMail('Код подтверждения', 
+                            f'Ваш код подтверждения: {code}', 
+                            [email])
+            if not is_mail[0]:
+                flash(f"Ошибка при отправке кода подтверждения: {is_mail[1]}. Если не удается устранить ошибку самостоятельно, \n"
+                f"обратитесь, пожалуйста, к организаторам проекта Книжный перекресток.", category='error')
+                return redirect(url_for('login'))
+            else:            
+                flash(f"Код подтверждения успешно отправлен на адрес электронной почты {email}. " \
+                    f"Проверьте вашу почту и введите полученный код в поле ниже.", category='success')                    
+                return render_template('verify_code.html', title="Ввод кода подтверждения", menu=dbase.getMenu())
+        else:
+            flash(f"Не верно указан адрес корпоративной электронной почты (ххх@tele2.ru). Если не удается устранить ошибку самостоятельно, \n"
+                    f"обратитесь, пожалуйста, к организаторам проекта Книжный перекресток.", category='error')
+            return redirect(url_for('login'))
+    else:   
+        return render_template('login.html', title="Авторизация участника", menu=dbase.getMenu())
 
-        if request.method == 'POST':
-            email = request.form['email'].lower().strip()
-            is_user = dbase.getUser(email)
+# обработка ввода кода подтверждения
+@application.route('/verify_code', methods=["POST", "GET"])
+def verify_code():    
+    if 'logged_in' in session:
+        return redirect(url_for('rules'))
+    
+    db = get_db()
+    dbase = FDataBase(db)
+    if request.method == 'POST':        
+        code = request.form['code']
+        if 'code' in session and str(session['code']) == code: 
+            is_user = dbase.getUser(session['userLogged'])
             if not is_user:
-                res = dbase.addUser(email)
+                res = dbase.addUser(session['userLogged'])
                 if res[0] and res[1] > 0:
-                    session['userLogged'] = email
-                    return redirect(url_for('index'))
+                    session['logged_in'] = True # сохранение информации о входе в сессию                    
+                    return redirect(url_for('rules'))
                 else:
                     flash(f"Ошибка при добавлении пользователя: {res[1]}. \n"
-                          f"Если не удается устранить ошибку самостоятельно, сообщите, пожалуйста, о ней через форму обратной связи.",
-                          category='error')
-            else:
-                session['userLogged'] = email
-                return redirect(url_for('index'))
-
-        return render_template('login.html', title="Авторизация", menu=dbase.getMenu())
+                          f"Если не удается устранить ошибку самостоятельно, \n"
+                          f"обратитесь, пожалуйста, к организаторам проекта Книжный перекресток.",
+                            category='error')
+                    return redirect(url_for('verify_code'))
+            
+            session['logged_in'] = True # сохранение информации о входе в сессию                    
+            return redirect(url_for('index')) 
+        else:
+            flash(f"Код подтверждения указан не верно. Попробуйте ввести повторно. "
+                  f"Если не удается устранить ошибку самостоятельно, "
+                  f"обратитесь, пожалуйста, к организаторам проекта Книжный перекресток.",
+                            category='error')                
+            return redirect(url_for('verify_code'))
+    else:
+        return render_template('verify_code.html', title="Ввод кода подтверждения", menu=dbase.getMenu())
 
 
 @application.route("/contact", methods=["POST", "GET"])
 def contact():
     db = get_db()
     dbase = FDataBase(db)
-    if 'userLogged' in session:
+    if 'logged_in' in session:
         user_id = dbase.getUser(session['userLogged'])
         if request.method == "POST":
             msg = request.form['message'].strip()
@@ -316,7 +367,7 @@ def contact():
 def close_feedback(fb_id):
     db = get_db()
     dbase = FDataBase(db)
-    if 'userLogged' in session:
+    if 'logged_in' in session:
         user_id = dbase.getUser(session['userLogged'])
         if user_id[1] != 1:
             return redirect(url_for('contact'))
