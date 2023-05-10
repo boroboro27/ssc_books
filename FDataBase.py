@@ -102,7 +102,7 @@ class FDataBase:
             if book_code: return (True, book_code['code'])  
         except sqlite3.Error as err:
             print(f'Ошибка добавления книги в БД - {str(err)}')            
-        return (False, str(err))
+            return (False, str(err))
     
     def takeBook(self, book_code: int, user_id: int) -> tuple[bool, int | str]:        
         """

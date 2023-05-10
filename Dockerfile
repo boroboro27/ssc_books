@@ -11,7 +11,8 @@ COPY . .
 RUN pip3 install --no-cache-dir -r requirements.txt
 
 # Установка пакетов tzdata для редактирования часового пояса
-RUN apt update && apt install -y tzdata && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get -y install tzdata && rm -rf /var/lib/apt/lists/* 
+RUN apt-get update && apt-get -y install sqlite3 && apt-get -y install nano && apt-get -y install sqlite3
 
 # Установка часового пояса Москвы
 RUN ln -fs /usr/share/zoneinfo/Europe/Moscow /etc/localtime && dpkg-reconfigure -f noninteractive tzdata
