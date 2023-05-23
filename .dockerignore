@@ -3,7 +3,7 @@ __pycache__
 *.pyo
 *.pyd
 .Python
-env
+venv
 pip-log.txt
 pip-delete-this-directory.txt
 .tox
@@ -20,3 +20,6 @@ coverage.xml
 .hypothesis
 .vscode
 .gitignore
+uwsgi.sock
+logs
+data

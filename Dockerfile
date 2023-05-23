@@ -9,14 +9,7 @@ LABEL type="prod."
 WORKDIR /ssc-books
 
 # копировать все файлы в контейнер
-COPY ./conf/* .
-COPY ./static/* .
-COPY ./templates/* .
-COPY ./uwsgi/* .
-COPY ./FDataBase.py .
-COPY ./flask-books.py .
-COPY ./requirements.txt .
-COPY ./uwsgi.ini .
+COPY . .
 
 # установка зависимостей
 RUN pip3 install --no-cache-dir -r requirements.txt
