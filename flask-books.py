@@ -1,23 +1,34 @@
 import os
 import sqlite3
 
-from flask import (Flask, flash, g, redirect, render_template, request,
+from flask import (flash, g, redirect, render_template, request,
                    session, url_for, abort)
-from flask_mail import Mail, Message
+from flask_mail import Mail, Message, email_dispatched
 
+from apiflask import APIFlask
 from FDataBase import FDataBase
 import conf.config as config
 import random
 from smtplib import SMTPException
+import logging
+from logging.handlers import SMTPHandler, RotatingFileHandler
 
-application = Flask(__name__)
+application = APIFlask(__name__)
+
+#сигнал email_dispatched - Логирование события отправки письма. 
+#Он отправляется всякий раз, когда отправляется электронное письмо
+def log_message(message, app):
+    app.logger.debug(message.subject)
+
+email_dispatched.connect(log_message)
 
 # конфигурация
-application.debug = True
+application.debug = config.DEBUG
+application.config['ADMINS'] = config.ADMINS
 application.config['SECRET_KEY'] = config.SECRET_KEY
 application.config['MAIL_SERVER'] = config.MAIL_SERVER
 application.config['MAIL_PORT'] = config.MAIL_PORT
-# application.config['MAIL_USE_TLS'] =
+application.config['MAIL_USE_TLS'] = config.MAIL_USE_TLS
 application.config['MAIL_USE_SSL'] = config.MAIL_USE_SSL
 # введите свой адрес электронной почты здесь
 application.config['MAIL_USERNAME'] = config.MAIL_USERNAME
@@ -27,6 +38,34 @@ application.config['MAIL_PASSWORD'] = config.MAIL_PASSWORD  # введите п�
 
 mail = Mail(application)
 
+# if not application.debug:
+#     if application.config['MAIL_SERVER']:
+#         auth = None
+#         if application.config['MAIL_USERNAME'] or application.config['MAIL_PASSWORD']:
+#             auth = (application.config['MAIL_USERNAME'], application.config['MAIL_PASSWORD'])
+#         secure = None
+#         if application.config['MAIL_USE_TLS'] or application.config['MAIL_USE_SSL']:
+#             secure = ()
+#         mail_handler = SMTPHandler(
+#             mailhost=(application.config['MAIL_SERVER'], application.config['MAIL_PORT']),
+#             fromaddr=application.config['MAIL_DEFAULT_SENDER'],
+#             toaddrs=application.config['ADMINS'], subject='Ошибка в сервисе "Книжный перекресток"',
+#             credentials=auth, secure=secure)
+#         mail_handler.setLevel(logging.ERROR)
+#         application.logger.addHandler(mail_handler)
+
+if not application.debug:    
+    if not os.path.exists('logs'):
+        os.mkdir('logs')
+    file_handler = RotatingFileHandler('logs/ssc_books.log', maxBytes=10240,
+                                       backupCount=10)
+    file_handler.setFormatter(logging.Formatter(
+        '%(asctime)s %(levelname)s: %(message)s [in %(pathname)s:%(lineno)d]'))
+    file_handler.setLevel(logging.INFO)
+    application.logger.addHandler(file_handler)
+
+    application.logger.setLevel(logging.INFO)
+    application.logger.info('SSC_Books startup')
 
 def sendMail(subject: str, body: str, users: list[str]) -> tuple[bool, str | None]:
     """
@@ -34,13 +73,13 @@ def sendMail(subject: str, body: str, users: list[str]) -> tuple[bool, str | Non
 
         :param: subject: заголовок письма, body: текст письма, users: список адресов эл. почты
         :return: кортеж с информацией о статусе отправки письма (true/false и описание ошибки(при наличии))
-        """   
+        """
     try:
         with mail.connect() as conn:
             for user in users:
                 msg = Message(recipients=[user],
-                            body=body,
-                            subject=subject)
+                              body=body,
+                              subject=subject)
 
                 conn.send(msg)
             return (True, )
@@ -107,7 +146,8 @@ def index():
             return render_template('index.html', title='Полка "Книжного перекрестка"',
                                    avl_books=dbase.getAvailableBooks(),
                                    # False, т.е. не для отображения в ЛК, а для Главной
-                                   taken_books=dbase.getTakenBooks(user_id[0], False),
+                                   taken_books=dbase.getTakenBooks(
+                                       user_id[0], False),
                                    menu=dbase.getMenu(), user=session['userLogged'].split('@')[0])
     else:
         return redirect(url_for('login'))
@@ -276,65 +316,69 @@ def lk():
 @application.route("/login", methods=["POST", "GET"])
 def login():
     if 'logged_in' in session:
-        return redirect(url_for('rules'))    
-    
+        return redirect(url_for('rules'))
+
     db = get_db()
-    dbase = FDataBase(db)    
+    dbase = FDataBase(db)
     if request.method == 'POST':
         email = request.form['email'].lower().strip()
         if email.split('@')[1] == 'tele2.ru':
             session['userLogged'] = email
-            code = random.randint(1000, 9999) # генерация случайного кода
-            session['code'] = code # сохранение кода в сессии
-            is_mail = sendMail('Код подтверждения', 
-                            f'Ваш код подтверждения: {code}', 
-                            [email])
+            code = random.randint(1000, 9999)  # генерация случайного кода
+            session['code'] = code  # сохранение кода в сессии
+            is_mail = sendMail('Код подтверждения',
+                               f'Ваш код подтверждения: {code}',
+                               [email])
             if not is_mail[0]:
                 flash(f"Ошибка при отправке кода подтверждения: {is_mail[1]}. Если не удается устранить ошибку самостоятельно, \n"
-                f"обратитесь, пожалуйста, к организаторам проекта Книжный перекресток.", category='error')
+                      f"обратитесь, пожалуйста, к организаторам проекта Книжный перекресток.", category='error')
                 return redirect(url_for('login'))
-            else:            
-                flash(f"Код подтверждения успешно отправлен на адрес электронной почты {email}. " \
-                    f"Проверьте вашу почту и введите полученный код в поле ниже.", category='success')                    
+            else:
+                flash(f"Код подтверждения успешно отправлен на адрес электронной почты {email}. "
+                      f"Проверьте вашу почту и введите полученный код в поле ниже.", category='success')
                 return render_template('verify_code.html', title="Ввод кода подтверждения", menu=dbase.getMenu())
         else:
             flash(f"Не верно указан адрес корпоративной электронной почты (ххх@tele2.ru). Если не удается устранить ошибку самостоятельно, \n"
-                    f"обратитесь, пожалуйста, к организаторам проекта Книжный перекресток.", category='error')
+                  f"обратитесь, пожалуйста, к организаторам проекта Книжный перекресток.", category='error')
             return redirect(url_for('login'))
-    else:   
+    else:
         return render_template('login.html', title="Авторизация участника", menu=dbase.getMenu())
 
 # обработка ввода кода подтверждения
+
+
 @application.route('/verify_code', methods=["POST", "GET"])
-def verify_code():    
+def verify_code():
     if 'logged_in' in session:
         return redirect(url_for('rules'))
-    
+
     db = get_db()
     dbase = FDataBase(db)
-    if request.method == 'POST':        
+    if request.method == 'POST':
         code = request.form['code']
-        if 'code' in session and str(session['code']) == code: 
+        if 'code' in session and str(session['code']) == code:
             is_user = dbase.getUser(session['userLogged'])
             if not is_user:
                 res = dbase.addUser(session['userLogged'])
                 if res[0] and res[1] > 0:
-                    session['logged_in'] = True # сохранение информации о входе в сессию                    
+                    # сохранение информации о входе в сессию
+                    session['logged_in'] = True
                     return redirect(url_for('rules'))
                 else:
                     flash(f"Ошибка при добавлении пользователя: {res[1]}. \n"
                           f"Если не удается устранить ошибку самостоятельно, \n"
                           f"обратитесь, пожалуйста, к организаторам проекта Книжный перекресток.",
-                            category='error')
+                          category='error')
                     return redirect(url_for('verify_code'))
-            
-            session['logged_in'] = True # сохранение информации о входе в сессию                    
-            return redirect(url_for('index')) 
+
+            # сохранение информации о входе в сессию
+            session['logged_in'] = True
+            return redirect(url_for('index'))
         else:
             flash(f"Код подтверждения указан не верно. Попробуйте ввести повторно. "
                   f"Если не удается устранить ошибку самостоятельно, "
                   f"обратитесь, пожалуйста, к организаторам проекта Книжный перекресток.",
-                            category='error')                
+                  category='error')
             return redirect(url_for('verify_code'))
     else:
         return render_template('verify_code.html', title="Ввод кода подтверждения", menu=dbase.getMenu())

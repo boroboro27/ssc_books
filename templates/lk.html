@@ -32,11 +32,7 @@ get_flashed_messages(True) %}
       <td>{{ book.dt_deadline }}</td>
       <td>
         {% if book.user_id == user_id %}
-        <form
-          method="get"
-          action="{{ url_for('return_book_get', book_code=book.book_code) }}"
-          name="book_code"
-        >
+        <form method="get" action="{{ url_for('return_book_get', book_code=book.book_code) }}" name="book_code">
           <input type="submit" value="вернуть книгу" />
         </form>
         {% endif %}
@@ -78,11 +74,7 @@ get_flashed_messages(True) %}
           <td>{{ sub.dt_stop }}</td>
           <td>
             {% if sub.user_name == user %}
-            <form
-              method="get"
-              action="{{ url_for('unsubscribe_book', book_id=sub.book_id) }}"
-              name="book_id"
-            >
+            <form method="get" action="{{ url_for('unsubscribe_book', book_id=sub.book_id) }}" name="book_id">
               <input type="submit" value="отписаться" />
             </form>
             {% endif %}
