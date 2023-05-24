@@ -1,6 +1,9 @@
 import sqlite3
 
 from typing import Optional
+from flask import current_app as app
+
+logger = app.logger
 
 
 class FDataBase:
@@ -19,9 +22,12 @@ class FDataBase:
             # Передаем book_id в метод execute() в виде кортежа
             self.__cur.execute("SELECT code FROM books WHERE id = ? and is_on = 1", (book_id,))
             res = self.__cur.fetchone()
-            if res: return res
+            
+            if res: 
+                logger.info(f'Успешно получен код {res} для книги с id#{book_id}')                
+                return res
         except sqlite3.Error as err:
-            print(f'Ошибка чтения книги из БД - {str(err)}')
+            logger.error(f'Ошибка получения кода книги по ИД из БД - {str(err)}')            
         return ()
     
     def __getBookId(self, book_code: int) -> tuple[int]:
@@ -35,9 +41,11 @@ class FDataBase:
             # Передаем book_code в метод execute() в виде кортежа
             self.__cur.execute("SELECT id FROM books WHERE code = ? and is_on = 1", (book_code,))
             res = self.__cur.fetchone()
-            if res: return res
+            if res: 
+                logger.info(f'Успешно получен ID#{res} для книги с кодом {book_code}')                
+                return res
         except sqlite3.Error as err:
-            print(f'Ошибка чтения книги из БД - {str(err)}')
+            logger.error(f'Ошибка получения id книги по коду из БД - {str(err)}') 
         return ()
     
     def getMenu(self) -> list[tuple[str]]:
@@ -49,9 +57,11 @@ class FDataBase:
         try:
             self.__cur.execute('SELECT * FROM mainmenu')
             res = self.__cur.fetchall()
-            if res: return res
+            if res: 
+                logger.info(f'Успешно получен список верхнего меню для сайта')
+                return res
         except sqlite3.Error as err:
-            print(f'Ошибка чтения списка меню из БД - {str(err)}')
+            logger.error(f'Ошибка чтения списка верхнего меню для сайта из БД - {str(err)}')            
         return []       
     
     def addUser(self, email: str) -> tuple[bool, int | str]:
@@ -66,8 +76,9 @@ class FDataBase:
                                (email,))
             rows = self.__cur.rowcount
             self.__db.commit()
-        except sqlite3.Error as err:
-            print(f'Ошибка при добавлении пользователя в БД - {str(err)}')
+            logger.info(f'Успешно добавлен новый пользователь {email} в БД')
+        except sqlite3.Error as err:            
+            logger.error(f'Ошибка при добавлении пользователя {email} в БД - {str(err)}')   
             return (False, str(err))
         return (True, rows)
     
@@ -81,16 +92,19 @@ class FDataBase:
         try:
             self.__cur.execute("SELECT id, is_admin FROM users WHERE email = ? AND is_on = 1", (email,))
             res = self.__cur.fetchone()
-            if res: return res            
+            if res: 
+                logger.info(f'Успешно получены данные по пользователю {email} из БД')
+                return res            
         except sqlite3.Error as err:
-            print(f'Ошибка получения id пользователя из БД - {str(err)}')
+            logger.error(f'Ошибка при получении данных по пользователю {email} из БД - {str(err)}') 
         return ()    
     
     def addBook(self, title: str, author: str, genre_id: int, year: int, user_id: int) -> tuple[bool, int | str]:        
         """
         Добавляет новую книгу в каталог, создаёт пустой новый формуляр, заносит в лог инфо о создании книги
 
-        :params title: название книги, author: автор, genre_id: id жанра, year: год издания, user_id: id владельца книги
+        :params title: название книги, author: автор, genre_id: id жанра, 
+        year: год издания, user_id: id владельца книги
         :return: кортеж с информацией о добавленной книге (статус добавления(True/False), код книги)
         """
         try: 
@@ -99,9 +113,12 @@ class FDataBase:
             book_id = self.__cur.lastrowid
             self.__db.commit()
             book_code = self.__getBookCode(book_id)
-            if book_code: return (True, book_code['code'])  
+            if book_code: 
+                logger.info(f"Успешно добавлена книга (id: {book_id}, код: {book_code['code']}): {title}, {author}, {genre_id}, {year}. Пользователь: {user_id}")
+                return (True, book_code['code'])  
         except sqlite3.Error as err:
-            print(f'Ошибка добавления книги в БД - {str(err)}')            
+            logger.error(f'Ошибка добавления книги ({title}, {author}, {genre_id}, {year}. '
+                         f'Пользователь: {user_id}) в БД - {str(err)}')            
             return (False, str(err))
     
     def takeBook(self, book_code: int, user_id: int) -> tuple[bool, int | str]:        
@@ -135,11 +152,16 @@ class FDataBase:
                 {'book_id': book_id['id'], 'user_id': user_id})
                 rows = self.__cur.rowcount
                 if rows <= 0:
+                    logger.error(f'Ошибка выдачи книги #{book_code}.'
+                                 f'Пользователь: id#{user_id}) в БД - описание ошибки: '
+                                 f"либо книга уже на руках у кото-то, "
+                                 f"либо у вас уже есть другая книга, и вы пока её не вернули")   
                     return (False, f"либо книга #{book_code} уже на руках у кото-то (найдите книгу в каталоге и проверьте её статус), "
                                 f"либо у вас уже есть другая книга, и вы пока её не вернули (проверьте выданные книги в личном кабинете).")
                 self.__db.commit() 
+                logger.info(f"Успешно выдана книга #{book_code}. Пользователь: id#{user_id}")
         except sqlite3.Error as err:
-            print(f'Ошибка выдачи книги в БД - {str(err)}')
+            logger.error(f"Ошибка выдачи книги #{book_code}. Пользователь: id#{user_id} - {str(err)}")
             return (False, str(err))
         return (True, rows)
     
@@ -169,12 +191,15 @@ class FDataBase:
 
                 rows = self.__cur.rowcount
                 if rows <= 0:
+                    logger.error(f'Ошибка возврата книги #{book_code}.'
+                                 f'Пользователь: id#{user_id}) в БД - описание ошибки: '
+                                 f"либо книга совсем не выдавалась, "
+                                 f"либо выдавалась, но не на ваше имя.") 
                     return (False, f"либо книга #{book_code} не выдавалась (найдите книгу в каталоге и проверьте её статус), "
-                                   f"либо выдавалась, но не ваше имя (проверьте выданные книги в личном кабинете).")
-                self.__db.commit()                             
-
+                                   f"либо выдавалась, но не на ваше имя (проверьте выданные книги в личном кабинете).")
+                self.__db.commit()  
         except sqlite3.Error as err:
-            print(f'Ошибка выдачи книги в БД - {str(err)}')
+            logger.error(f"Ошибка возврата книги #{book_code}. Пользователь: id#{user_id} - {str(err)}")            
             return (False, str(err))
         return (True, rows)    
     

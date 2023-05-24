@@ -82,6 +82,7 @@ def sendMail(subject: str, body: str, users: list[str]) -> tuple[bool, str | Non
                               subject=subject)
 
                 conn.send(msg)
+            application.logger.info(f'Письмо с темой "{subject}" отправлено пользователю {user}')
             return (True, )
     except SMTPException as err:
         return (False, str(err))
@@ -102,6 +103,7 @@ def connect_db():
     # Объект sqlite3.Row является объектом-контейнером,
     # который позволяет обращаться к элементам строки результата запроса с помощью их имен или индексов.
     conn.row_factory = sqlite3.Row
+    application.logger.info(f'Соединение с БД создано.')
     return conn
 
 
@@ -132,6 +134,7 @@ def close_db(error):
                 f.write(sql)
         # закрывается соединение с БД
         g.link_db.close()
+        application.logger.info(f'Соединение с БД закрыто.')
 
 
 @application.route("/", methods=["POST", "GET"])
@@ -246,7 +249,7 @@ def subscribe_book(book_id):
             flash(f"Ошибка при подписке на книгу: {res[1]}. Если не удается устранить ошибку самостоятельно, \n"
                   f"сообщите, пожалуйста, нам об ошибке через форму обратной связи.", category='error')
         else:
-            msg = (f"Оформлена новая подписка на книгу: {res[1]}. Книга: #{book[0]}, название: '{book[1]}', "
+            msg = (f"Оформлена новая подписка на книгу. Код книги: #{book[0]}, название: '{book[1]}', "
                    f"автор: {book[2]}, год издания: {book[4]}."
                    f'Теперь мы будем сообщать вам, если книга возвращается на полку в зоне обмена "Книжного перекрестка".')
 
